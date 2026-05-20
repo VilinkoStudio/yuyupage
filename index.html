@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tab | BETA</title>
+    <title>YuyuPage | Beta</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -432,7 +432,7 @@
     </div>
 
     <footer id="pageFooter">
-        Copyright &copy; 2026 yuyudifiesh. All Rights Reserved.
+        Copyright &copy; <span id="footerYear">2026</span> Vilinko Studio. All Rights Reserved.
     </footer>
 
     <div class="modal-overlay" id="modalOverlay">
@@ -520,6 +520,12 @@
             document.getElementById('timePeriod').textContent = period;
         }
 
+        // 自动计算并更新页脚年份的函数
+        function updateFooterYear() {
+            const currentYear = new Date().getFullYear();
+            document.getElementById('footerYear').textContent = currentYear;
+        }
+
         const modalOverlay = document.getElementById('modalOverlay');
         const openSettingsBtn = document.getElementById('openSettingsBtn');
         const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -599,7 +605,9 @@
             }
         });
 
+        // 初始化执行
         updateClock();
+        updateFooterYear(); // 执行年份更新
         setInterval(updateClock, 1000);
     </script>
 </body>
