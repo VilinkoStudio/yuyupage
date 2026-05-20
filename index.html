@@ -1,919 +1,941 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YuyuPage | Beta</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YuyuPage | Beta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<style>
-:root{
-    --bg-color:#fbfeff;
-    --text-color:#191c1e;
-    --input-bg:#eff1f3;
-    --input-text:#191c1e;
-    --input-focus-border:#5279FB;
-    --placeholder-color:#70787d;
-    --transition-speed:0.3s;
-    --modal-bg:#ffffff;
-    --modal-overlay:rgba(0,0,0,0.2);
-    --border-color:#e1e2e5;
-}
+    <style>
+        :root {
+            --bg-color: #fbfeff;
+            --text-color: #191c1e;
+            --input-bg: #eff1f3;
+            --input-text: #191c1e;
+            --input-focus-border: #5279FB;
+            --placeholder-color: #70787d;
+            --transition-speed: 0.3s;
+            --modal-bg: #ffffff;
+            --modal-overlay: rgba(0, 0, 0, 0.2);
+            --border-color: #e1e2e5;
+        }
 
-@media (prefers-color-scheme: dark){
-    :root{
-        --bg-color:#191c1e;
-        --text-color:#e2e2e5;
-        --input-bg:#2d3133;
-        --input-text:#e2e2e5;
-        --input-focus-border:#9AB1FA;
-        --placeholder-color:#8a9296;
-        --modal-bg:#2d3133;
-        --modal-overlay:rgba(0,0,0,0.4);
-        --border-color:#43474a;
-    }
-}
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #191c1e;
+                --text-color: #e2e2e5;
+                --input-bg: #2d3133;
+                --input-text: #e2e2e5;
+                --input-focus-border: #9AB1FA;
+                --placeholder-color: #8a9296;
+                --modal-bg: #2d3133;
+                --modal-overlay: rgba(0, 0, 0, 0.4);
+                --border-color: #43474a;
+            }
+        }
 
-@font-face{
-    font-family:'MinecraftFont';
-    src:url('./source/minecraftfont.woff') format('woff');
-    font-display:swap;
-}
+        @font-face {
+            font-family: 'MinecraftFont';
+            src: url('./source/minecraftfont.woff') format('woff');
+            font-display: swap;
+        }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-body{
-    font-family:'MinecraftFont','Google Sans','Product Sans','Helvetica Neue',Arial,sans-serif;
-    background:var(--bg-color);
-    color:var(--text-color);
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    transition:background-color var(--transition-speed),color var(--transition-speed);
-    padding:20px;
-    -webkit-user-select:none;
-    user-select:none;
-    scrollbar-width:none;
-}
+        body {
+            font-family: 'MinecraftFont', 'Google Sans', 'Product Sans', 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            padding: 20px;
+            -webkit-user-select: none;
+            user-select: none;
+            scrollbar-width: none;
+        }
 
-body::-webkit-scrollbar{
-    display:none;
-}
+        body::-webkit-scrollbar {
+            display: none;
+        }
 
-.top-right-tools{
-    position:absolute;
-    top:24px;
-    right:24px;
-    display:flex;
-    align-items:center;
-    gap:18px;
-    z-index:10;
-}
+        .top-right-tools {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            z-index: 10;
+        }
 
-.weather-widget{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    opacity:0.88;
-    font-size:1rem;
-}
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.88;
+            font-size: 1rem;
+        }
 
-.weather-widget.hidden{
-    display:none;
-}
+        .weather-widget.hidden {
+            display: none;
+        }
 
-.settings-btn{
-    background:none;
-    border:none;
-    color:var(--text-color);
-    font-size:1.35rem;
-    cursor:pointer;
-    opacity:0.7;
-    transition:0.3s;
-}
+        .settings-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.35rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
 
-.settings-btn:hover{
-    opacity:1;
-    transform:rotate(45deg);
-}
+        .settings-btn:hover {
+            opacity: 1;
+            transform: rotate(45deg);
+        }
 
-.container{
-    width:100%;
-    max-width:600px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:32px;
-    transform:translateY(-80px);
-}
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+            transform: translateY(-80px);
+        }
 
-.time-display{
-    font-size:5.5rem;
-    font-weight:300;
-    display:flex;
-    align-items:baseline;
-    letter-spacing:-2px;
-}
+        .time-display {
+            font-size: 5.5rem;
+            font-weight: 300;
+            display: flex;
+            align-items: baseline;
+            letter-spacing: -2px;
+        }
 
-.time-period{
-    font-size:1.8rem;
-    margin-left:12px;
-    opacity:0.8;
-}
+        .time-period {
+            font-size: 1.8rem;
+            margin-left: 12px;
+            opacity: 0.8;
+        }
 
-@keyframes blink{
-    0%,100%{opacity:1}
-    50%{opacity:0.1}
-}
+        @keyframes blink {
 
-.colon.blinking{
-    animation:blink 1s infinite;
-}
+            0%,
+            100% {
+                opacity: 1
+            }
 
-.search-wrapper{
-    width:100%;
-}
+            50% {
+                opacity: 0.1
+            }
+        }
 
-.search-input{
-    width:100%;
-    height:56px;
-    padding:0 24px;
-    border:none;
-    outline:none;
-    border-radius:12px;
-    background:var(--input-bg);
-    color:var(--input-text);
-    font-size:1.1rem;
-    border:2px solid transparent;
-    transition:0.3s;
-    -webkit-user-select:none;
-    user-select:text;
-}
+        .colon.blinking {
+            animation: blink 1s infinite;
+        }
 
-.search-input:hover{
-    box-shadow:0 1px 3px rgba(0,0,0,0.08);
-}
+        .search-wrapper {
+            width: 100%;
+        }
 
-.search-input:focus{
-    border-color:var(--input-focus-border);
-    background:var(--bg-color);
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
+        .search-input {
+            width: 100%;
+            height: 56px;
+            padding: 0 24px;
+            border: none;
+            outline: none;
+            border-radius: 12px;
+            background: var(--input-bg);
+            color: var(--input-text);
+            font-size: 1.1rem;
+            border: 2px solid transparent;
+            transition: 0.3s;
+            -webkit-user-select: none;
+            user-select: text;
+        }
 
-.search-input.custom-font{
-    font-family:'MinecraftFont',sans-serif!important;
-}
+        .search-input:hover {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
 
-.search-input::placeholder{
-    color:var(--placeholder-color);
-}
+        .search-input:focus {
+            border-color: var(--input-focus-border);
+            background: var(--bg-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
 
-.doodle-container{
-    width:100%;
-    display:none;
-    justify-content:center;
-    align-items:center;
-    margin-top:8px;
-}
+        .search-input.custom-font {
+            font-family: 'MinecraftFont', sans-serif !important;
+        }
 
-.doodle-img{
-    max-height:280px;
-    width:auto;
-    object-fit:contain;
-    pointer-events:none;
-    -webkit-user-drag:none;
-}
+        .search-input::placeholder {
+            color: var(--placeholder-color);
+        }
 
-footer{
-    position:absolute;
-    bottom:24px;
-    font-size:0.85rem;
-    opacity:0.6;
-    text-align:center;
-    width:100%;
-}
+        .doodle-container {
+            width: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-top: 8px;
+        }
 
-.modal-overlay{
-    position:fixed;
-    inset:0;
-    background:var(--modal-overlay);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    opacity:0;
-    visibility:hidden;
-    transition:0.25s;
-    z-index:100;
-    -webkit-backdrop-filter:blur(4px);
-    backdrop-filter:blur(4px);
-    overflow:hidden;
-    scrollbar-width:none;
-}
+        .doodle-img {
+            max-height: 280px;
+            width: auto;
+            object-fit: contain;
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
 
-.modal-overlay::-webkit-scrollbar{
-    display:none;
-}
+        footer {
+            position: absolute;
+            bottom: 24px;
+            font-size: 0.85rem;
+            opacity: 0.6;
+            text-align: center;
+            width: 100%;
+        }
 
-.modal-overlay.active{
-    opacity:1;
-    visibility:visible;
-}
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--modal-overlay);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.25s;
+            z-index: 100;
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            overflow: hidden;
+            scrollbar-width: none;
+        }
 
-.modal-container{
-    width:90%;
-    max-width:400px;
-    height:560px;
-    background:var(--modal-bg);
-    border-radius:12px;
-    padding:24px;
-    display:flex;
-    flex-direction:column;
-    transform:scale(0.9);
-    transition:0.25s;
-    overflow:hidden;
-}
+        .modal-overlay::-webkit-scrollbar {
+            display: none;
+        }
 
-.modal-overlay.active .modal-container{
-    transform:scale(1);
-}
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
 
-.modal-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:24px;
-}
+        .modal-container {
+            width: 90%;
+            max-width: 400px;
+            height: 560px;
+            background: var(--modal-bg);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.9);
+            transition: 0.25s;
+            overflow: hidden;
+        }
 
-.modal-title{
-    font-size:1.2rem;
-}
+        .modal-overlay.active .modal-container {
+            transform: scale(1);
+        }
 
-.modal-close{
-    background:none;
-    border:none;
-    color:var(--text-color);
-    font-size:1.1rem;
-    cursor:pointer;
-}
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
 
-.modal-body{
-    flex:1;
-    overflow-y:auto;
-    padding-right:4px;
-    scrollbar-width:none;
-}
+        .modal-title {
+            font-size: 1.2rem;
+        }
 
-.modal-body::-webkit-scrollbar{
-    display:none;
-}
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
 
-.setting-item{
-    margin-bottom:20px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            scrollbar-width: none;
+        }
 
-.setting-label{
-    font-size:0.95rem;
-}
+        .modal-body::-webkit-scrollbar {
+            display: none;
+        }
 
-.setting-select,
-.setting-input{
-    width:100%;
-    height:40px;
-    border-radius:8px;
-    border:1px solid var(--border-color);
-    background:var(--input-bg);
-    color:var(--text-color);
-    padding:0 12px;
-    outline:none;
-}
+        .setting-item {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-.switch-label{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    width:100%;
-}
+        .setting-label {
+            font-size: 0.95rem;
+        }
 
-.switch-input{
-    display:none;
-}
+        .setting-select,
+        .setting-input {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            padding: 0 12px;
+            outline: none;
+        }
 
-.switch-slider{
-    width:44px;
-    height:24px;
-    background:var(--border-color);
-    border-radius:12px;
-    position:relative;
-}
+        .switch-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
 
-.switch-slider::before{
-    content:"";
-    position:absolute;
-    width:18px;
-    height:18px;
-    border-radius:50%;
-    background:#fff;
-    left:3px;
-    top:3px;
-    transition:0.2s;
-}
+        .switch-input {
+            display: none;
+        }
 
-.switch-input:checked + .switch-slider{
-    background:var(--input-focus-border);
-}
+        .switch-slider {
+            width: 44px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 12px;
+            position: relative;
+        }
 
-.switch-input:checked + .switch-slider::before{
-    transform:translateX(20px);
-}
+        .switch-slider::before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            left: 3px;
+            top: 3px;
+            transition: 0.2s;
+        }
 
-.setting-disabled{
-    opacity:0.45;
-    pointer-events:none;
-}
+        .switch-input:checked+.switch-slider {
+            background: var(--input-focus-border);
+        }
 
-@media(max-width:480px){
+        .switch-input:checked+.switch-slider::before {
+            transform: translateX(20px);
+        }
 
-    .container{
-        transform:translateY(-40px);
-        gap:24px;
-    }
+        .setting-disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
 
-    .time-display{
-        font-size:4rem;
-    }
+        @media(max-width:480px) {
 
-    .time-period{
-        font-size:1.3rem;
-        margin-left:6px;
-    }
+            .container {
+                transform: translateY(-40px);
+                gap: 24px;
+            }
 
-    .search-input{
-        height:52px;
-        font-size:1rem;
-    }
+            .time-display {
+                font-size: 4rem;
+            }
 
-    .doodle-img{
-        max-height:200px;
-    }
+            .time-period {
+                font-size: 1.3rem;
+                margin-left: 6px;
+            }
 
-    .top-right-tools{
-        top:16px;
-        right:16px;
-    }
-}
-</style>
+            .search-input {
+                height: 52px;
+                font-size: 1rem;
+            }
+
+            .doodle-img {
+                max-height: 200px;
+            }
+
+            .top-right-tools {
+                top: 16px;
+                right: 16px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="top-right-tools">
+    <div class="top-right-tools">
 
-    <div class="weather-widget" id="weatherWidget">
-        <i class="fa-solid fa-cloud"></i>
-        <span id="weatherTemp">--°C</span>
-    </div>
-
-    <button class="settings-btn" id="openSettingsBtn">
-        <i class="fa-solid fa-gear"></i>
-    </button>
-
-</div>
-
-<div class="container">
-
-    <div class="time-display">
-        <span id="clockHours">00</span>
-        <span class="colon" id="clockColon">:</span>
-        <span id="clockMinutes">00</span>
-        <span class="time-period" id="timePeriod"></span>
-    </div>
-
-    <div class="search-wrapper">
-        <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
-            <input
-                id="searchInput"
-                type="text"
-                name="q"
-                class="search-input"
-                placeholder="使用 Bing 搜索..."
-                autocomplete="off"
-                autofocus
-            >
-        </form>
-    </div>
-
-    <div class="doodle-container" id="doodleSlot">
-        <img src="doodle/xiaoman.png" class="doodle-img" draggable="false">
-    </div>
-
-</div>
-
-<footer id="pageFooter">
-    Copyright &copy; <span id="footerYear">2026</span> Vilinko. All Rights Reserved.
-</footer>
-
-<div class="modal-overlay" id="modalOverlay">
-
-    <div class="modal-container">
-
-        <div class="modal-header">
-            <div class="modal-title">个性化设置</div>
-
-            <button class="modal-close" id="closeSettingsBtn">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <div class="weather-widget" id="weatherWidget">
+            <i class="fa-solid fa-cloud"></i>
+            <span id="weatherTemp">--°C</span>
         </div>
 
-        <div class="modal-body">
+        <button class="settings-btn" id="openSettingsBtn">
+            <i class="fa-solid fa-gear"></i>
+        </button>
 
-            <div class="setting-item">
-                <label class="setting-label">搜索引擎</label>
+    </div>
 
-                <select class="setting-select" id="engineSelect">
-                    <option value="bing">Bing (必应)</option>
-                    <option value="baidu">Baidu (百度)</option>
-                    <option value="google">Google (谷歌)</option>
-                </select>
+    <div class="container">
+
+        <div class="time-display">
+            <span id="clockHours">00</span>
+            <span class="colon" id="clockColon">:</span>
+            <span id="clockMinutes">00</span>
+            <span class="time-period" id="timePeriod"></span>
+        </div>
+
+        <div class="search-wrapper">
+            <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
+                <input id="searchInput" type="text" name="q" class="search-input" placeholder="使用 Bing 搜索..."
+                    autocomplete="off" autofocus>
+            </form>
+        </div>
+
+        <div class="doodle-container" id="doodleSlot">
+            <img src="doodle/xiaoman.png" class="doodle-img" draggable="false">
+        </div>
+
+    </div>
+
+    <footer id="pageFooter">
+        Copyright &copy; <span id="footerYear">2026</span> Vilinko. All Rights Reserved.
+    </footer>
+
+    <div class="modal-overlay" id="modalOverlay">
+
+        <div class="modal-container">
+
+            <div class="modal-header">
+                <div class="modal-title">个性化设置</div>
+
+                <button class="modal-close" id="closeSettingsBtn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <div class="setting-item">
-                <label class="switch-label">
-                    <span class="setting-label">显示天气</span>
+            <div class="modal-body">
 
-                    <input type="checkbox" class="switch-input" id="weatherToggle" checked>
+                <div class="setting-item">
+                    <label class="setting-label">搜索引擎</label>
 
-                    <div class="switch-slider"></div>
-                </label>
-            </div>
+                    <select class="setting-select" id="engineSelect">
+                        <option value="bing">Bing (必应)</option>
+                        <option value="google">Google (谷歌)</option>
+                        <option value="baidu">Baidu (百度)</option>
+                        <option value="sogou">Sogou (搜狗)</option>
+                        <option value="360">360</option>
+                        <option value="yandex">Yandex</option>
+                    </select>
+                </div>
 
-            <div class="setting-item" id="weatherUnitGroup">
-                <label class="setting-label">天气单位</label>
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">显示天气</span>
 
-                <select class="setting-select" id="weatherUnitSelect">
-                    <option value="metric">摄氏 ℃</option>
-                    <option value="imperial">华氏 ℉</option>
-                </select>
-            </div>
+                        <input type="checkbox" class="switch-input" id="weatherToggle" checked>
 
-            <div class="setting-item" id="weatherLocationGroup">
-                <label class="setting-label">天气位置</label>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
 
-                <input
-                    type="text"
-                    class="setting-input"
-                    id="weatherLocationInput"
-                    placeholder="Tokyo"
-                >
-            </div>
+                <div class="setting-item" id="weatherUnitGroup">
+                    <label class="setting-label">天气单位</label>
 
-            <div class="setting-item">
-                <label class="switch-label">
-                    <span class="setting-label">显示节日/节气 Doodle</span>
+                    <select class="setting-select" id="weatherUnitSelect">
+                        <option value="metric">摄氏 ℃</option>
+                        <option value="imperial">华氏 ℉</option>
+                    </select>
+                </div>
 
-                    <input type="checkbox" class="switch-input" id="doodleToggle">
+                <div class="setting-item" id="weatherLocationGroup">
+                    <label class="setting-label">天气位置</label>
 
-                    <div class="switch-slider"></div>
-                </label>
-            </div>
+                    <input type="text" class="setting-input" id="weatherLocationInput" placeholder="Beijing">
+                </div>
 
-            <div class="setting-item">
-                <label class="switch-label">
-                    <span class="setting-label">使用 24 小时制</span>
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">显示节日/节气 Doodle</span>
 
-                    <input type="checkbox" class="switch-input" id="timeFormatToggle" checked>
+                        <input type="checkbox" class="switch-input" id="doodleToggle">
 
-                    <div class="switch-slider"></div>
-                </label>
-            </div>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
 
-            <div class="setting-item">
-                <label class="switch-label">
-                    <span class="setting-label">时间分隔符闪烁</span>
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">使用 24 小时制</span>
 
-                    <input type="checkbox" class="switch-input" id="blinkToggle">
+                        <input type="checkbox" class="switch-input" id="timeFormatToggle" checked>
 
-                    <div class="switch-slider"></div>
-                </label>
-            </div>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
 
-            <div class="setting-item">
-                <label class="switch-label">
-                    <span class="setting-label">搜索框使用像素字体</span>
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">时间分隔符闪烁</span>
 
-                    <input type="checkbox" class="switch-input" id="fontToggle">
+                        <input type="checkbox" class="switch-input" id="blinkToggle">
 
-                    <div class="switch-slider"></div>
-                </label>
-            </div>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
 
-            <div class="setting-item">
-                <label class="switch-label">
-                    <span class="setting-label">显示页脚版权信息</span>
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">搜索框使用像素字体</span>
 
-                    <input type="checkbox" class="switch-input" id="footerToggle" checked>
+                        <input type="checkbox" class="switch-input" id="fontToggle">
 
-                    <div class="switch-slider"></div>
-                </label>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">显示页脚版权信息</span>
+
+                        <input type="checkbox" class="switch-input" id="footerToggle" checked>
+
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
             </div>
 
         </div>
 
     </div>
 
-</div>
+    <script>
+        const WEATHER_API_KEY = "9d703463f9f67ab79617c7f5fde1fe73";
 
-<script>
-const WEATHER_API_KEY="9d703463f9f67ab79617c7f5fde1fe73";
+        let is24Hour = true;
 
-let is24Hour=true;
+        const DEFAULT_SETTINGS = {
+            engine: 'bing',
+            is24Hour: true,
+            blink: false,
+            customFont: false,
+            showFooter: true,
+            showWeather: true,
+            weatherUnit: 'metric',
+            weatherLocation: 'Beijing',
+            showDoodle: false
+        };
 
-const DEFAULT_SETTINGS={
-    engine:'bing',
-    is24Hour:true,
-    blink:false,
-    customFont:false,
-    showFooter:true,
-    showWeather:true,
-    weatherUnit:'metric',
-    weatherLocation:'Tokyo',
-    showDoodle:false
-};
+        const searchEngines = {
 
-const searchEngines={
-    bing:{
-        action:"https://cn.bing.com/search",
-        name:"q",
-        placeholder:"使用 Bing 搜索..."
-    },
-    baidu:{
-        action:"https://www.baidu.com/s",
-        name:"wd",
-        placeholder:"使用 百度 搜索..."
-    },
-    google:{
-        action:"https://www.google.com/search",
-        name:"q",
-        placeholder:"使用 Google 搜索..."
-    }
-};
+            bing: {
+                action: "https://cn.bing.com/search",
+                name: "q",
+                placeholder: "使用 Bing 搜索..."
+            },
 
-const modalOverlay=document.getElementById('modalOverlay');
-const openSettingsBtn=document.getElementById('openSettingsBtn');
-const closeSettingsBtn=document.getElementById('closeSettingsBtn');
+            google: {
+                action: "https://www.google.com/search",
+                name: "q",
+                placeholder: "使用 Google 搜索..."
+            },
 
-const engineSelect=document.getElementById('engineSelect');
+            baidu: {
+                action: "https://www.baidu.com/s",
+                name: "wd",
+                placeholder: "使用 百度 搜索..."
+            },
 
-const searchForm=document.getElementById('searchForm');
-const searchInput=document.getElementById('searchInput');
+            sogou: {
+                action: "https://www.sogou.com/web",
+                name: "query",
+                placeholder: "使用 搜狗 搜索..."
+            },
 
-const timeFormatToggle=document.getElementById('timeFormatToggle');
-const blinkToggle=document.getElementById('blinkToggle');
-const fontToggle=document.getElementById('fontToggle');
-const footerToggle=document.getElementById('footerToggle');
+            360: {
+                action: "https://www.so.com/s",
+                name: "q",
+                placeholder: "使用 360 搜索..."
+            },
 
-const doodleToggle=document.getElementById('doodleToggle');
-const doodleSlot=document.getElementById('doodleSlot');
-
-const clockColon=document.getElementById('clockColon');
-
-const pageFooter=document.getElementById('pageFooter');
-
-const weatherWidget=document.getElementById('weatherWidget');
-const weatherTemp=document.getElementById('weatherTemp');
-
-const weatherToggle=document.getElementById('weatherToggle');
-const weatherUnitSelect=document.getElementById('weatherUnitSelect');
-const weatherLocationInput=document.getElementById('weatherLocationInput');
-
-const weatherUnitGroup=document.getElementById('weatherUnitGroup');
-const weatherLocationGroup=document.getElementById('weatherLocationGroup');
-
-function saveSettings(){
-
-    const settings={
-        engine:engineSelect.value,
-        is24Hour:is24Hour,
-        blink:blinkToggle.checked,
-        customFont:fontToggle.checked,
-        showFooter:footerToggle.checked,
-        showWeather:weatherToggle.checked,
-        weatherUnit:weatherUnitSelect.value,
-        weatherLocation:weatherLocationInput.value || 'Tokyo',
-        showDoodle:doodleToggle.checked
-    };
-
-    localStorage.setItem(
-        'yuyupage_settings',
-        JSON.stringify(settings)
-    );
-}
-
-function loadSettings(){
-
-    const saved=localStorage.getItem('yuyupage_settings');
-
-    const settings=saved
-        ? JSON.parse(saved)
-        : DEFAULT_SETTINGS;
-
-    engineSelect.value=settings.engine;
-    applyEngine(settings.engine);
-
-    is24Hour=settings.is24Hour;
-    timeFormatToggle.checked=settings.is24Hour;
-
-    blinkToggle.checked=settings.blink;
-    applyBlink(settings.blink);
-
-    fontToggle.checked=settings.customFont;
-    applyFont(settings.customFont);
-
-    footerToggle.checked=settings.showFooter;
-    applyFooter(settings.showFooter);
-
-    weatherToggle.checked=settings.showWeather;
-    weatherUnitSelect.value=settings.weatherUnit;
-    weatherLocationInput.value=settings.weatherLocation;
-
-    applyWeatherVisibility(settings.showWeather);
-    applyWeatherSettingState(settings.showWeather);
-
-    doodleToggle.checked=settings.showDoodle;
-
-    if(settings.showDoodle){
-        doodleSlot.style.display="flex";
-    }else{
-        doodleSlot.style.display="none";
-    }
-
-    if(settings.showWeather){
-        fetchWeather();
-    }
-}
-
-function applyEngine(engine){
-
-    const config=searchEngines[engine];
-
-    searchForm.action=config.action;
-    searchInput.name=config.name;
-    searchInput.placeholder=config.placeholder;
-}
-
-function applyBlink(enabled){
-
-    if(enabled){
-        clockColon.classList.add('blinking');
-    }else{
-        clockColon.classList.remove('blinking');
-    }
-}
-
-function applyFont(enabled){
-
-    if(enabled){
-        searchInput.classList.add('custom-font');
-    }else{
-        searchInput.classList.remove('custom-font');
-    }
-}
-
-function applyFooter(enabled){
-
-    if(enabled){
-        pageFooter.style.opacity="0.6";
-        pageFooter.style.visibility="visible";
-    }else{
-        pageFooter.style.opacity="0";
-        pageFooter.style.visibility="hidden";
-    }
-}
-
-function applyWeatherVisibility(enabled){
-
-    if(enabled){
-        weatherWidget.classList.remove('hidden');
-    }else{
-        weatherWidget.classList.add('hidden');
-    }
-}
-
-function applyWeatherSettingState(enabled){
-
-    if(enabled){
-        weatherUnitGroup.classList.remove('setting-disabled');
-        weatherLocationGroup.classList.remove('setting-disabled');
-    }else{
-        weatherUnitGroup.classList.add('setting-disabled');
-        weatherLocationGroup.classList.add('setting-disabled');
-    }
-}
-
-async function fetchWeather(){
-
-    const city=weatherLocationInput.value || 'Tokyo';
-
-    const unit=weatherUnitSelect.value;
-
-    const symbol=unit==='metric'
-        ? '°C'
-        : '°F';
-
-    try{
-
-        const response=await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=${unit}&appid=${WEATHER_API_KEY}`
-        );
-
-        const data=await response.json();
-
-        if(data.main){
-
-            const temp=Math.round(data.main.temp);
-
-            weatherTemp.textContent=`${temp}${symbol}`;
-
-            const icon=weatherWidget.querySelector('i');
-
-            const weatherMain=(data.weather[0].main || '').toLowerCase();
-
-            if(weatherMain.includes('cloud')){
-                icon.className='fa-solid fa-cloud';
-            }else if(weatherMain.includes('rain')){
-                icon.className='fa-solid fa-cloud-rain';
-            }else if(weatherMain.includes('clear')){
-                icon.className='fa-solid fa-sun';
-            }else if(weatherMain.includes('snow')){
-                icon.className='fa-solid fa-snowflake';
-            }else{
-                icon.className='fa-solid fa-cloud';
+            yandex: {
+                action: "https://yandex.com/search/",
+                name: "text",
+                placeholder: "使用 Yandex 搜索..."
             }
 
+        };
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
+        const engineSelect = document.getElementById('engineSelect');
+
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+
+        const timeFormatToggle = document.getElementById('timeFormatToggle');
+        const blinkToggle = document.getElementById('blinkToggle');
+        const fontToggle = document.getElementById('fontToggle');
+        const footerToggle = document.getElementById('footerToggle');
+
+        const doodleToggle = document.getElementById('doodleToggle');
+        const doodleSlot = document.getElementById('doodleSlot');
+
+        const clockColon = document.getElementById('clockColon');
+
+        const pageFooter = document.getElementById('pageFooter');
+
+        const weatherWidget = document.getElementById('weatherWidget');
+        const weatherTemp = document.getElementById('weatherTemp');
+
+        const weatherToggle = document.getElementById('weatherToggle');
+        const weatherUnitSelect = document.getElementById('weatherUnitSelect');
+        const weatherLocationInput = document.getElementById('weatherLocationInput');
+
+        const weatherUnitGroup = document.getElementById('weatherUnitGroup');
+        const weatherLocationGroup = document.getElementById('weatherLocationGroup');
+
+        function saveSettings() {
+
+            const settings = {
+                engine: engineSelect.value,
+                is24Hour: is24Hour,
+                blink: blinkToggle.checked,
+                customFont: fontToggle.checked,
+                showFooter: footerToggle.checked,
+                showWeather: weatherToggle.checked,
+                weatherUnit: weatherUnitSelect.value,
+                weatherLocation: weatherLocationInput.value || 'Beijing',
+                showDoodle: doodleToggle.checked
+            };
+
+            localStorage.setItem(
+                'yuyupage_settings',
+                JSON.stringify(settings)
+            );
         }
 
-    }catch{
-        weatherTemp.textContent='--';
-    }
-}
+        function loadSettings() {
 
-function updateClock(){
+            const saved = localStorage.getItem('yuyupage_settings');
 
-    const now=new Date();
+            const settings = saved
+                ? JSON.parse(saved)
+                : DEFAULT_SETTINGS;
 
-    let hours=now.getHours();
+            engineSelect.value = settings.engine;
+            applyEngine(settings.engine);
 
-    let minutes=now.getMinutes();
+            is24Hour = settings.is24Hour;
+            timeFormatToggle.checked = settings.is24Hour;
 
-    let period='';
+            blinkToggle.checked = settings.blink;
+            applyBlink(settings.blink);
 
-    if(!is24Hour){
+            fontToggle.checked = settings.customFont;
+            applyFont(settings.customFont);
 
-        period=hours>=12 ? 'PM':'AM';
+            footerToggle.checked = settings.showFooter;
+            applyFooter(settings.showFooter);
 
-        hours=hours%12;
+            weatherToggle.checked = settings.showWeather;
+            weatherUnitSelect.value = settings.weatherUnit;
+            weatherLocationInput.value = settings.weatherLocation;
 
-        hours=hours ? hours : 12;
-    }
+            applyWeatherVisibility(settings.showWeather);
+            applyWeatherSettingState(settings.showWeather);
 
-    hours=hours<10 ? '0'+hours : hours;
-    minutes=minutes<10 ? '0'+minutes : minutes;
+            doodleToggle.checked = settings.showDoodle;
 
-    document.getElementById('clockHours').textContent=hours;
-    document.getElementById('clockMinutes').textContent=minutes;
-    document.getElementById('timePeriod').textContent=period;
-}
+            if (settings.showDoodle) {
+                doodleSlot.style.display = "flex";
+            } else {
+                doodleSlot.style.display = "none";
+            }
 
-function updateFooterYear(){
+            if (settings.showWeather) {
+                fetchWeather();
+            }
+        }
 
-    document.getElementById('footerYear').textContent=
-        new Date().getFullYear();
-}
+        function applyEngine(engine) {
 
-openSettingsBtn.addEventListener('click',()=>{
+            const config = searchEngines[engine];
 
-    modalOverlay.classList.add('active');
-});
+            searchForm.action = config.action;
+            searchInput.name = config.name;
+            searchInput.placeholder = config.placeholder;
+        }
 
-closeSettingsBtn.addEventListener('click',()=>{
+        function applyBlink(enabled) {
 
-    modalOverlay.classList.remove('active');
-});
+            if (enabled) {
+                clockColon.classList.add('blinking');
+            } else {
+                clockColon.classList.remove('blinking');
+            }
+        }
 
-modalOverlay.addEventListener('click',(e)=>{
+        function applyFont(enabled) {
 
-    if(e.target===modalOverlay){
-        modalOverlay.classList.remove('active');
-    }
-});
+            if (enabled) {
+                searchInput.classList.add('custom-font');
+            } else {
+                searchInput.classList.remove('custom-font');
+            }
+        }
 
-engineSelect.addEventListener('change',(e)=>{
+        function applyFooter(enabled) {
 
-    applyEngine(e.target.value);
+            if (enabled) {
+                pageFooter.style.opacity = "0.6";
+                pageFooter.style.visibility = "visible";
+            } else {
+                pageFooter.style.opacity = "0";
+                pageFooter.style.visibility = "hidden";
+            }
+        }
 
-    saveSettings();
-});
+        function applyWeatherVisibility(enabled) {
 
-timeFormatToggle.addEventListener('change',(e)=>{
+            if (enabled) {
+                weatherWidget.classList.remove('hidden');
+            } else {
+                weatherWidget.classList.add('hidden');
+            }
+        }
 
-    is24Hour=e.target.checked;
+        function applyWeatherSettingState(enabled) {
 
-    updateClock();
+            if (enabled) {
+                weatherUnitGroup.classList.remove('setting-disabled');
+                weatherLocationGroup.classList.remove('setting-disabled');
+            } else {
+                weatherUnitGroup.classList.add('setting-disabled');
+                weatherLocationGroup.classList.add('setting-disabled');
+            }
+        }
 
-    saveSettings();
-});
+        async function fetchWeather() {
 
-blinkToggle.addEventListener('change',(e)=>{
+            const city = weatherLocationInput.value || 'Beijing';
 
-    applyBlink(e.target.checked);
+            const unit = weatherUnitSelect.value;
 
-    saveSettings();
-});
+            const symbol = unit === 'metric'
+                ? '°C'
+                : '°F';
 
-fontToggle.addEventListener('change',(e)=>{
+            try {
 
-    applyFont(e.target.checked);
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=${unit}&appid=${WEATHER_API_KEY}`
+                );
 
-    saveSettings();
-});
+                const data = await response.json();
 
-footerToggle.addEventListener('change',(e)=>{
+                if (data.main) {
 
-    applyFooter(e.target.checked);
+                    const temp = Math.round(data.main.temp);
 
-    saveSettings();
-});
+                    weatherTemp.textContent = `${temp}${symbol}`;
 
-doodleToggle.addEventListener('change',(e)=>{
+                    const icon = weatherWidget.querySelector('i');
 
-    if(e.target.checked){
-        doodleSlot.style.display='flex';
-    }else{
-        doodleSlot.style.display='none';
-    }
+                    const weatherMain = (data.weather[0].main || '').toLowerCase();
 
-    saveSettings();
-});
+                    if (weatherMain.includes('cloud')) {
+                        icon.className = 'fa-solid fa-cloud';
+                    } else if (weatherMain.includes('rain')) {
+                        icon.className = 'fa-solid fa-cloud-rain';
+                    } else if (weatherMain.includes('clear')) {
+                        icon.className = 'fa-solid fa-sun';
+                    } else if (weatherMain.includes('snow')) {
+                        icon.className = 'fa-solid fa-snowflake';
+                    } else {
+                        icon.className = 'fa-solid fa-cloud';
+                    }
 
-weatherToggle.addEventListener('change',(e)=>{
+                }
 
-    applyWeatherVisibility(e.target.checked);
+            } catch {
+                weatherTemp.textContent = '--';
+            }
+        }
 
-    applyWeatherSettingState(e.target.checked);
+        function updateClock() {
 
-    if(e.target.checked){
-        fetchWeather();
-    }
+            const now = new Date();
 
-    saveSettings();
-});
+            let hours = now.getHours();
 
-weatherUnitSelect.addEventListener('change',()=>{
+            let minutes = now.getMinutes();
 
-    fetchWeather();
+            let period = '';
 
-    saveSettings();
-});
+            if (!is24Hour) {
 
-weatherLocationInput.addEventListener('input',(e)=>{
+                period = hours >= 12 ? 'PM' : 'AM';
 
-    e.target.value=e.target.value.replace(/[^a-zA-Z\s]/g,'');
+                hours = hours % 12;
 
-    saveSettings();
-});
+                hours = hours ? hours : 12;
+            }
 
-weatherLocationInput.addEventListener('change',()=>{
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
 
-    fetchWeather();
+            document.getElementById('clockHours').textContent = hours;
+            document.getElementById('clockMinutes').textContent = minutes;
+            document.getElementById('timePeriod').textContent = period;
+        }
 
-    saveSettings();
-});
+        function updateFooterYear() {
 
-loadSettings();
+            document.getElementById('footerYear').textContent =
+                new Date().getFullYear();
+        }
 
-updateClock();
+        openSettingsBtn.addEventListener('click', () => {
 
-updateFooterYear();
+            modalOverlay.classList.add('active');
+        });
 
-setInterval(updateClock,1000);
+        closeSettingsBtn.addEventListener('click', () => {
 
-setInterval(()=>{
+            modalOverlay.classList.remove('active');
+        });
 
-    if(weatherToggle.checked){
-        fetchWeather();
-    }
+        modalOverlay.addEventListener('click', (e) => {
 
-},600000);
-</script>
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('active');
+            }
+        });
+
+        engineSelect.addEventListener('change', (e) => {
+
+            applyEngine(e.target.value);
+
+            saveSettings();
+        });
+
+        timeFormatToggle.addEventListener('change', (e) => {
+
+            is24Hour = e.target.checked;
+
+            updateClock();
+
+            saveSettings();
+        });
+
+        blinkToggle.addEventListener('change', (e) => {
+
+            applyBlink(e.target.checked);
+
+            saveSettings();
+        });
+
+        fontToggle.addEventListener('change', (e) => {
+
+            applyFont(e.target.checked);
+
+            saveSettings();
+        });
+
+        footerToggle.addEventListener('change', (e) => {
+
+            applyFooter(e.target.checked);
+
+            saveSettings();
+        });
+
+        doodleToggle.addEventListener('change', (e) => {
+
+            if (e.target.checked) {
+                doodleSlot.style.display = 'flex';
+            } else {
+                doodleSlot.style.display = 'none';
+            }
+
+            saveSettings();
+        });
+
+        weatherToggle.addEventListener('change', (e) => {
+
+            applyWeatherVisibility(e.target.checked);
+
+            applyWeatherSettingState(e.target.checked);
+
+            if (e.target.checked) {
+                fetchWeather();
+            }
+
+            saveSettings();
+        });
+
+        weatherUnitSelect.addEventListener('change', () => {
+
+            fetchWeather();
+
+            saveSettings();
+        });
+
+        weatherLocationInput.addEventListener('input', (e) => {
+
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+
+            saveSettings();
+        });
+
+        weatherLocationInput.addEventListener('change', () => {
+
+            fetchWeather();
+
+            saveSettings();
+        });
+
+        loadSettings();
+
+        updateClock();
+
+        updateFooterYear();
+
+        setInterval(updateClock, 1000);
+
+        setInterval(() => {
+
+            if (weatherToggle.checked) {
+                fetchWeather();
+            }
+
+        }, 600000);
+    </script>
 
 </body>
+
 </html>
