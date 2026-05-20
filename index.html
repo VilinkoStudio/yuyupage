@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab | BETA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #fbfeff;
+            --text-color: #191c1e;
+            --input-bg: #eff1f3;
+            --input-text: #191c1e;
+            --input-focus-border: #5279FB;
+            --placeholder-color: #70787d;
+            --transition-speed: 0.3s;
+            --modal-bg: #ffffff;
+            --modal-overlay: rgba(0, 0, 0, 0.2);
+            --border-color: #e1e2e5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #191c1e;
+                --text-color: #e2e2e5;
+                --input-bg: #2d3133;
+                --input-text: #e2e2e5;
+                --input-focus-border: #9AB1FA;
+                --placeholder-color: #8a9296;
+                --modal-bg: #2d3133;
+                --modal-overlay: rgba(0, 0, 0, 0.4);
+                --border-color: #43474a;
+            }
+        }
+
+        @font-face {
+            font-family: 'MinecraftFont';
+            src: url('./source/minecraftfont.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'MinecraftFont', 'Google Sans', 'Product Sans', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            -webkit-transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            overflow: hidden;
+            padding: 20px;
+            -webkit-user-select: none;  
+            -moz-user-select: none;     
+            -ms-user-select: none;      
+            user-select: none;          
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 1.35rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            opacity: 0.7;
+            -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity var(--transition-speed);
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity var(--transition-speed);
+            z-index: 10;
+        }
+
+        .settings-btn:hover {
+            opacity: 1;
+            -webkit-transform: rotate(45deg);
+            transform: rotate(45deg);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            width: 100%;
+            max-width: 600px;
+            gap: 32px;
+            -webkit-transform: translateY(-80px);
+            transform: translateY(-80px);
+            -webkit-transition: -webkit-transform var(--transition-speed) ease;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .time-display {
+            font-size: 5.5rem;
+            font-weight: 300;
+            letter-spacing: -2px;
+            display: flex;
+            align-items: baseline;
+            -webkit-transition: font-size var(--transition-speed) ease;
+            transition: font-size var(--transition-speed) ease;
+        }
+
+        .time-period {
+            font-size: 1.8rem;
+            margin-left: 12px;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        @-webkit-keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.1; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.1; }
+        }
+
+        .colon.blinking {
+            -webkit-animation: blink 1s infinite;
+            animation: blink 1s infinite;
+        }
+
+        .search-wrapper {
+            width: 100%;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 56px;
+            padding: 0 24px;
+            font-size: 1.1rem;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            outline: none;
+            -webkit-transition: all var(--transition-speed) cubic-bezier(0.2, 0, 0, 1);
+            transition: all var(--transition-speed) cubic-bezier(0.2, 0, 0, 1);
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        .search-input.custom-font {
+            font-family: 'MinecraftFont', sans-serif !important;
+        }
+
+        .search-input:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .search-input:focus {
+            border-color: var(--input-focus-border);
+            background-color: var(--bg-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--placeholder-color);
+            opacity: 0.8;
+        }
+
+        .doodle-container {
+            display: none;             
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            margin-top: 8px;
+            opacity: 0.95;
+        }
+
+        .doodle-img {
+            max-height: 280px;         
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;      
+            -webkit-user-drag: none;   
+        }
+
+        footer {
+            position: absolute;
+            bottom: 24px;
+            font-size: 0.85rem;
+            opacity: 0.6;
+            letter-spacing: 0.5px;
+            text-align: center;
+            width: 100%;
+            padding: 0 20px;
+            -webkit-transition: color var(--transition-speed) ease, opacity var(--transition-speed) ease, visibility var(--transition-speed);
+            transition: color var(--transition-speed) ease, opacity var(--transition-speed) ease, visibility var(--transition-speed);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-overlay);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            -webkit-transition: opacity 0.25s ease, visibility 0.25s ease;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background-color: var(--modal-bg);
+            color: var(--text-color);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            -webkit-transform: scale(0.9);
+            transform: scale(0.9);
+            -webkit-transition: -webkit-transform 0.25s cubic-bezier(0.2, 0, 0, 1), background-color var(--transition-speed) ease;
+            transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), background-color var(--transition-speed) ease;
+        }
+
+        .modal-overlay.active .modal-container {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .setting-select {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            padding: 0 12px;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .setting-select:focus {
+            border-color: var(--input-focus-border);
+        }
+
+        .switch-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .switch-input {
+            display: none;
+        }
+
+        .switch-slider {
+            width: 44px;
+            height: 24px;
+            background-color: var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .switch-slider::before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            -webkit-transition: -webkit-transform 0.2s;
+            transition: transform 0.2s;
+        }
+
+        .switch-input:checked + .switch-slider {
+            background-color: var(--input-focus-border);
+        }
+
+        .switch-input:checked + .switch-slider::before {
+            -webkit-transform: translateX(20px);
+            transform: translateX(20px);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 88%;
+                -webkit-transform: translateY(-40px);
+                transform: translateY(-40px);
+                gap: 24px;
+            }
+
+            .time-display {
+                font-size: 4rem;
+                letter-spacing: -1px;
+            }
+
+            .time-period {
+                font-size: 1.3rem;
+                margin-left: 6px;
+            }
+
+            .search-input {
+                height: 52px;
+                padding: 0 20px;
+                font-size: 1rem;
+            }
+
+            footer {
+                bottom: 16px;
+                font-size: 0.75rem;
+            }
+
+            .settings-btn {
+                top: 16px;
+                right: 16px;
+                font-size: 1.2rem;
+            }
+            
+            .doodle-img {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="settings-btn" id="openSettingsBtn" title="设置">
+        <i class="fa-solid fa-gear"></i>
+    </button>
+
+    <div class="container">
+        <div class="time-display">
+            <span id="clockHours">00</span>
+            <span class="colon" id="clockColon">:</span>
+            <span id="clockMinutes">00</span>
+            <span class="time-period" id="timePeriod"></span>
+        </div>
+
+        <div class="search-wrapper">
+            <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
+                <input 
+                    id="searchInput"
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="使用 Bing 搜索..." 
+                    autocomplete="off"
+                    autofocus
+                >
+            </form>
+        </div>
+
+        <div class="doodle-container" id="doodleSlot">
+            <img src="doodle/xiaoman.png" alt="小满 Doodle" class="doodle-img" draggable="false">
+        </div>
+    </div>
+
+    <footer id="pageFooter">
+        Copyright &copy; 2026 yuyudifiesh. All Rights Reserved.
+    </footer>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">个性化设置</div>
+                <button class="modal-close" id="closeSettingsBtn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label class="setting-label" for="engineSelect">搜索引擎</label>
+                    <select class="setting-select" id="engineSelect">
+                        <option value="bing">Bing (必应)</option>
+                        <option value="baidu">Baidu (百度)</option>
+                        <option value="google">Google (谷歌)</option>
+                    </select>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <label class="switch-label">
+                        <span class="setting-label">显示节日/节气 Doodle</span>
+                        <input type="checkbox" class="switch-input" id="doodleToggle">
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <label class="switch-label">
+                        <span class="setting-label">使用 24 小时制</span>
+                        <input type="checkbox" class="switch-input" id="timeFormatToggle" checked>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <label class="switch-label">
+                        <span class="setting-label">时间分隔符闪烁</span>
+                        <input type="checkbox" class="switch-input" id="blinkToggle">
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <label class="switch-label">
+                        <span class="setting-label">搜索框使用自定义像素字体</span>
+                        <input type="checkbox" class="switch-input" id="fontToggle">
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <label class="switch-label">
+                        <span class="setting-label">显示页脚版权信息</span>
+                        <input type="checkbox" class="switch-input" id="footerToggle" checked>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let is24Hour = true;
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let period = '';
+
+            if (!is24Hour) {
+                period = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+            }
+
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+
+            document.getElementById('clockHours').textContent = hours;
+            document.getElementById('clockMinutes').textContent = minutes;
+            document.getElementById('timePeriod').textContent = period;
+        }
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
+        function openModal() { modalOverlay.classList.add('active'); }
+        function closeModal() { modalOverlay.classList.remove('active'); }
+
+        openSettingsBtn.addEventListener('click', openModal);
+        closeSettingsBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        const footerToggle = document.getElementById('footerToggle');
+        const pageFooter = document.getElementById('pageFooter');
+        const engineSelect = document.getElementById('engineSelect');
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const blinkToggle = document.getElementById('blinkToggle');
+        const clockColon = document.getElementById('clockColon');
+        const timeFormatToggle = document.getElementById('timeFormatToggle');
+        const fontToggle = document.getElementById('fontToggle');
+        const doodleToggle = document.getElementById('doodleToggle');
+        const doodleSlot = document.getElementById('doodleSlot');
+
+        doodleToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                doodleSlot.style.display = "flex";
+            } else {
+                doodleSlot.style.display = "none";
+            }
+        });
+
+        footerToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                pageFooter.style.opacity = "0.6";
+                pageFooter.style.visibility = "visible";
+            } else {
+                pageFooter.style.opacity = "0";
+                pageFooter.style.visibility = "hidden";
+            }
+        });
+
+        const searchEngines = {
+            bing: { action: "https://cn.bing.com/search", name: "q", placeholder: "使用 Bing 搜索..." },
+            baidu: { action: "https://www.baidu.com/s", name: "wd", placeholder: "使用 百度 搜索..." },
+            google: { action: "https://www.google.com/search", name: "q", placeholder: "使用 Google 搜索..." }
+        };
+
+        engineSelect.addEventListener('change', (e) => {
+            const config = searchEngines[e.target.value];
+            if (config) {
+                searchForm.action = config.action;
+                searchInput.name = config.name;
+                searchInput.placeholder = config.placeholder;
+            }
+        });
+
+        blinkToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                clockColon.classList.add('blinking');
+            } else {
+                clockColon.classList.remove('blinking');
+            }
+        });
+
+        timeFormatToggle.addEventListener('change', (e) => {
+            is24Hour = e.target.checked;
+            updateClock();
+        });
+
+        fontToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                searchInput.classList.add('custom-font');
+            } else {
+                searchInput.classList.remove('custom-font');
+            }
+        });
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
