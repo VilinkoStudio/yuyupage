@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,34 +58,98 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            -webkit-transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
             transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
             overflow: hidden;
             padding: 20px;
-            -webkit-user-select: none;  
-            -moz-user-select: none;     
-            -ms-user-select: none;      
-            user-select: none;          
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        .settings-btn {
+        body {
+            overflow: hidden;
+            scrollbar-width: none;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .modal-overlay {
+            overflow: hidden;
+            scrollbar-width: none;
+        }
+
+        .modal-overlay::-webkit-scrollbar {
+            display: none;
+        }
+
+        .modal-container {
+            background-color: var(--modal-bg);
+            color: var(--text-color);
+            width: 90%;
+            max-width: 400px;
+            height: 560px;
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            transform: scale(0.9);
+            transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), background-color var(--transition-speed) ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            scrollbar-width: none;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .top-right-tools {
             position: absolute;
             top: 24px;
             right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            z-index: 10;
+        }
+
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            opacity: 0.88;
+            transition: opacity var(--transition-speed);
+        }
+
+        .weather-widget.hidden {
+            display: none;
+        }
+
+        .weather-widget i {
+            font-size: 1.15rem;
+        }
+
+        .settings-btn {
             font-size: 1.35rem;
             background: none;
             border: none;
             color: var(--text-color);
             cursor: pointer;
             opacity: 0.7;
-            -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity var(--transition-speed);
             transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity var(--transition-speed);
-            z-index: 10;
         }
 
         .settings-btn:hover {
             opacity: 1;
-            -webkit-transform: rotate(45deg);
             transform: rotate(45deg);
         }
 
@@ -97,9 +162,7 @@
             width: 100%;
             max-width: 600px;
             gap: 32px;
-            -webkit-transform: translateY(-80px);
             transform: translateY(-80px);
-            -webkit-transition: -webkit-transform var(--transition-speed) ease;
             transition: transform var(--transition-speed) ease;
         }
 
@@ -109,7 +172,6 @@
             letter-spacing: -2px;
             display: flex;
             align-items: baseline;
-            -webkit-transition: font-size var(--transition-speed) ease;
             transition: font-size var(--transition-speed) ease;
         }
 
@@ -120,17 +182,19 @@
             opacity: 0.8;
         }
 
-        @-webkit-keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.1; }
-        }
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.1; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.1;
+            }
         }
 
         .colon.blinking {
-            -webkit-animation: blink 1s infinite;
             animation: blink 1s infinite;
         }
 
@@ -149,12 +213,9 @@
             border: 2px solid transparent;
             border-radius: 12px;
             outline: none;
-            -webkit-transition: all var(--transition-speed) cubic-bezier(0.2, 0, 0, 1);
             transition: all var(--transition-speed) cubic-bezier(0.2, 0, 0, 1);
             font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
             -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
             user-select: text;
         }
 
@@ -163,7 +224,7 @@
         }
 
         .search-input:hover {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
         .search-input:focus {
@@ -178,7 +239,7 @@
         }
 
         .doodle-container {
-            display: none;             
+            display: none;
             width: 100%;
             justify-content: center;
             align-items: center;
@@ -187,11 +248,11 @@
         }
 
         .doodle-img {
-            max-height: 280px;         
+            max-height: 280px;
             width: auto;
             height: auto;
             object-fit: contain;
-            pointer-events: none;      
+            pointer-events: none;
             -webkit-user-drag: none;
         }
 
@@ -204,7 +265,6 @@
             text-align: center;
             width: 100%;
             padding: 0 20px;
-            -webkit-transition: color var(--transition-speed) ease, opacity var(--transition-speed) ease, visibility var(--transition-speed);
             transition: color var(--transition-speed) ease, opacity var(--transition-speed) ease, visibility var(--transition-speed);
         }
 
@@ -223,7 +283,6 @@
             visibility: hidden;
             -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
-            -webkit-transition: opacity 0.25s ease, visibility 0.25s ease;
             transition: opacity 0.25s ease, visibility 0.25s ease;
         }
 
@@ -241,14 +300,11 @@
             padding: 24px;
             position: relative;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-            -webkit-transform: scale(0.9);
             transform: scale(0.9);
-            -webkit-transition: -webkit-transform 0.25s cubic-bezier(0.2, 0, 0, 1), background-color var(--transition-speed) ease;
             transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), background-color var(--transition-speed) ease;
         }
 
         .modal-overlay.active .modal-container {
-            -webkit-transform: scale(1);
             transform: scale(1);
         }
 
@@ -295,7 +351,8 @@
             opacity: 0.9;
         }
 
-        .setting-select {
+        .setting-select,
+        .setting-input {
             width: 100%;
             height: 40px;
             border-radius: 8px;
@@ -305,12 +362,17 @@
             padding: 0 12px;
             font-size: 0.95rem;
             outline: none;
-            cursor: pointer;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, opacity 0.2s;
         }
 
+        .setting-input:focus,
         .setting-select:focus {
             border-color: var(--input-focus-border);
+        }
+
+        .setting-disabled {
+            opacity: 0.45;
+            pointer-events: none;
         }
 
         .switch-label {
@@ -343,24 +405,21 @@
             bottom: 3px;
             background-color: #ffffff;
             border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            -webkit-transition: -webkit-transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s;
         }
 
-        .switch-input:checked + .switch-slider {
+        .switch-input:checked+.switch-slider {
             background-color: var(--input-focus-border);
         }
 
-        .switch-input:checked + .switch-slider::before {
-            -webkit-transform: translateX(20px);
+        .switch-input:checked+.switch-slider::before {
             transform: translateX(20px);
         }
 
         @media (max-width: 480px) {
             .container {
                 max-width: 88%;
-                -webkit-transform: translateY(-40px);
                 transform: translateY(-40px);
                 gap: 24px;
             }
@@ -386,23 +445,39 @@
                 font-size: 0.75rem;
             }
 
-            .settings-btn {
+            .top-right-tools {
                 top: 16px;
                 right: 16px;
+                gap: 12px;
+            }
+
+            .settings-btn {
                 font-size: 1.2rem;
             }
-            
+
+            .weather-widget {
+                font-size: 0.9rem;
+            }
+
             .doodle-img {
                 max-height: 200px;
             }
         }
     </style>
 </head>
+
 <body>
 
-    <button class="settings-btn" id="openSettingsBtn" title="设置">
-        <i class="fa-solid fa-gear"></i>
-    </button>
+    <div class="top-right-tools">
+        <div class="weather-widget" id="weatherWidget">
+            <i class="fa-solid fa-cloud"></i>
+            <span id="weatherTemp">--°C</span>
+        </div>
+
+        <button class="settings-btn" id="openSettingsBtn" title="设置">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    </div>
 
     <div class="container">
         <div class="time-display">
@@ -414,15 +489,8 @@
 
         <div class="search-wrapper">
             <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
-                <input 
-                    id="searchInput"
-                    type="text" 
-                    name="q" 
-                    class="search-input" 
-                    placeholder="使用 Bing 搜索..." 
-                    autocomplete="off"
-                    autofocus
-                >
+                <input id="searchInput" type="text" name="q" class="search-input" placeholder="使用 Bing 搜索..."
+                    autocomplete="off" autofocus>
             </form>
         </div>
 
@@ -443,8 +511,9 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            
+
             <div class="modal-body">
+
                 <div class="setting-item">
                     <label class="setting-label" for="engineSelect">搜索引擎</label>
                     <select class="setting-select" id="engineSelect">
@@ -452,6 +521,27 @@
                         <option value="baidu">Baidu (百度)</option>
                         <option value="google">Google (谷歌)</option>
                     </select>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px;">
+                    <label class="switch-label">
+                        <span class="setting-label">显示天气</span>
+                        <input type="checkbox" class="switch-input" id="weatherToggle" checked>
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" id="weatherUnitGroup">
+                    <label class="setting-label" for="weatherUnitSelect">天气单位</label>
+                    <select class="setting-select" id="weatherUnitSelect">
+                        <option value="metric">摄氏 ℃</option>
+                        <option value="imperial">华氏 ℉</option>
+                    </select>
+                </div>
+
+                <div class="setting-item" id="weatherLocationGroup">
+                    <label class="setting-label" for="weatherLocationInput">天气位置</label>
+                    <input type="text" class="setting-input" id="weatherLocationInput" placeholder="Beijing">
                 </div>
 
                 <div class="setting-item" style="margin-top: 20px;">
@@ -493,31 +583,33 @@
                         <div class="switch-slider"></div>
                     </label>
                 </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        // 全局控制状态
         let is24Hour = true;
 
-        // 默认配置（用于首次访问页面时）
+        const WEATHER_API_KEY = "9d703463f9f67ab79617c7f5fde1fe73";
+
         const DEFAULT_SETTINGS = {
             engine: 'bing',
             is24Hour: true,
             blink: false,
             customFont: false,
-            showFooter: true
+            showFooter: true,
+            showWeather: true,
+            weatherUnit: 'metric',
+            weatherLocation: 'Beijing'
         };
 
-        // 搜索引擎配置表
         const searchEngines = {
             bing: { action: "https://cn.bing.com/search", name: "q", placeholder: "使用 Bing 搜索..." },
             baidu: { action: "https://www.baidu.com/s", name: "wd", placeholder: "使用 百度 搜索..." },
             google: { action: "https://www.google.com/search", name: "q", placeholder: "使用 Google 搜索..." }
         };
 
-        // DOM 元素捕捉
         const modalOverlay = document.getElementById('modalOverlay');
         const openSettingsBtn = document.getElementById('openSettingsBtn');
         const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -533,52 +625,63 @@
         const doodleToggle = document.getElementById('doodleToggle');
         const doodleSlot = document.getElementById('doodleSlot');
 
-        // ==================== 核心：缓存管理 ====================
-        
-        // 从 localStorage 读取并应用设置
+        const weatherToggle = document.getElementById('weatherToggle');
+        const weatherWidget = document.getElementById('weatherWidget');
+        const weatherTemp = document.getElementById('weatherTemp');
+        const weatherUnitSelect = document.getElementById('weatherUnitSelect');
+        const weatherLocationInput = document.getElementById('weatherLocationInput');
+        const weatherUnitGroup = document.getElementById('weatherUnitGroup');
+        const weatherLocationGroup = document.getElementById('weatherLocationGroup');
+
         function loadSettings() {
             const saved = localStorage.getItem('yuyupage_settings');
             const settings = saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
 
-            // 1. 搜索引擎
             engineSelect.value = settings.engine;
             applyEngine(settings.engine);
 
-            // 2. 24小时制
             is24Hour = settings.is24Hour;
             timeFormatToggle.checked = is24Hour;
 
-            // 3. 分隔符闪烁
             blinkToggle.checked = settings.blink;
             applyBlink(settings.blink);
 
-            // 4. 自定义字体
             fontToggle.checked = settings.customFont;
             applyFont(settings.customFont);
 
-            // 5. 页脚信息
             footerToggle.checked = settings.showFooter;
             applyFooter(settings.showFooter);
 
-            // 注：Doodle 开关不缓存，保持默认关闭
+            weatherToggle.checked = settings.showWeather;
+            weatherUnitSelect.value = settings.weatherUnit;
+            weatherLocationInput.value = settings.weatherLocation;
+
+            applyWeatherVisibility(settings.showWeather);
+            applyWeatherSettingState(settings.showWeather);
+
             doodleToggle.checked = false;
             doodleSlot.style.display = "none";
+
+            if (settings.showWeather) {
+                fetchWeather();
+            }
         }
 
-        // 保存当前设置到 localStorage
         function saveSettings() {
             const settings = {
                 engine: engineSelect.value,
                 is24Hour: is24Hour,
                 blink: blinkToggle.checked,
                 customFont: fontToggle.checked,
-                showFooter: footerToggle.checked
+                showFooter: footerToggle.checked,
+                showWeather: weatherToggle.checked,
+                weatherUnit: weatherUnitSelect.value,
+                weatherLocation: weatherLocationInput.value || 'Beijing'
             };
+
             localStorage.setItem('yuyupage_settings', JSON.stringify(settings));
         }
 
-        // ==================== UI 渲染辅助函数 ====================
-        
         function applyEngine(engineKey) {
             const config = searchEngines[engineKey] || searchEngines.bing;
             searchForm.action = config.action;
@@ -612,8 +715,67 @@
             }
         }
 
+        function applyWeatherVisibility(show) {
+            if (show) {
+                weatherWidget.classList.remove('hidden');
+            } else {
+                weatherWidget.classList.add('hidden');
+            }
+        }
+
+        function applyWeatherSettingState(enabled) {
+            if (enabled) {
+                weatherUnitGroup.classList.remove('setting-disabled');
+                weatherLocationGroup.classList.remove('setting-disabled');
+            } else {
+                weatherUnitGroup.classList.add('setting-disabled');
+                weatherLocationGroup.classList.add('setting-disabled');
+            }
+        }
+
+        async function fetchWeather() {
+            const city = weatherLocationInput.value || 'Beijing';
+            const unit = weatherUnitSelect.value;
+            const symbol = unit === 'metric' ? '°C' : '°F';
+
+            try {
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=${unit}&appid=${WEATHER_API_KEY}`
+                );
+
+                const data = await response.json();
+
+                if (data.main) {
+                    const temp = Math.round(data.main.temp);
+                    weatherTemp.textContent = `${temp}${symbol}`;
+
+                    const weatherMain = (data.weather[0].main || '').toLowerCase();
+                    const icon = weatherWidget.querySelector('i');
+
+                    if (weatherMain.includes('cloud')) {
+                        icon.className = 'fa-solid fa-cloud';
+                    } else if (weatherMain.includes('rain')) {
+                        icon.className = 'fa-solid fa-cloud-rain';
+                    } else if (weatherMain.includes('clear')) {
+                        icon.className = 'fa-solid fa-sun';
+                    } else if (weatherMain.includes('snow')) {
+                        icon.className = 'fa-solid fa-snowflake';
+                    } else if (weatherMain.includes('storm')) {
+                        icon.className = 'fa-solid fa-bolt';
+                    } else {
+                        icon.className = 'fa-solid fa-cloud';
+                    }
+                } else {
+                    weatherTemp.textContent = '--';
+                }
+            } catch {
+                weatherTemp.textContent = '--';
+            }
+        }
+
         function updateClock() {
             const now = new Date();
+
             let hours = now.getHours();
             let minutes = now.getMinutes();
             let period = '';
@@ -637,19 +799,22 @@
             document.getElementById('footerYear').textContent = currentYear;
         }
 
-        // ==================== 事件监听器 ====================
-        
-        // 模态框交互
-        function openModal() { modalOverlay.classList.add('active'); }
-        function closeModal() { modalOverlay.classList.remove('active'); }
+        function openModal() {
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
 
         openSettingsBtn.addEventListener('click', openModal);
+
         closeSettingsBtn.addEventListener('click', closeModal);
+
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
         });
 
-        // 选项变更监听 (改变时立即触发渲染并保存到缓存)
         engineSelect.addEventListener('change', (e) => {
             applyEngine(e.target.value);
             saveSettings();
@@ -684,12 +849,44 @@
             }
         });
 
-        // 初始化
+        weatherToggle.addEventListener('change', (e) => {
+            applyWeatherVisibility(e.target.checked);
+            applyWeatherSettingState(e.target.checked);
+
+            if (e.target.checked) {
+                fetchWeather();
+            }
+
+            saveSettings();
+        });
+
+        weatherUnitSelect.addEventListener('change', () => {
+            fetchWeather();
+            saveSettings();
+        });
+
+        weatherLocationInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+            saveSettings();
+        });
+
+        weatherLocationInput.addEventListener('change', () => {
+            fetchWeather();
+            saveSettings();
+        });
+
         loadSettings();
         updateClock();
         updateFooterYear();
-        
+
         setInterval(updateClock, 1000);
+
+        setInterval(() => {
+            if (weatherToggle.checked) {
+                fetchWeather();
+            }
+        }, 600000);
     </script>
 </body>
+
 </html>
