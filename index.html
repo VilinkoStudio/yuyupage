@@ -192,7 +192,7 @@
             height: auto;
             object-fit: contain;
             pointer-events: none;      
-            -webkit-user-drag: none;   
+            -webkit-user-drag: none;
         }
 
         footer {
@@ -432,7 +432,7 @@
     </div>
 
     <footer id="pageFooter">
-        Copyright &copy; <span id="footerYear">2026</span> Vilinko Studio. All Rights Reserved.
+        Copyright &copy; <span id="footerYear">2026</span> Vilinko. All Rights Reserved.
     </footer>
 
     <div class="modal-overlay" id="modalOverlay">
@@ -498,7 +498,119 @@
     </div>
 
     <script>
+        // 全局控制状态
         let is24Hour = true;
+
+        // 默认配置（用于首次访问页面时）
+        const DEFAULT_SETTINGS = {
+            engine: 'bing',
+            is24Hour: true,
+            blink: false,
+            customFont: false,
+            showFooter: true
+        };
+
+        // 搜索引擎配置表
+        const searchEngines = {
+            bing: { action: "https://cn.bing.com/search", name: "q", placeholder: "使用 Bing 搜索..." },
+            baidu: { action: "https://www.baidu.com/s", name: "wd", placeholder: "使用 百度 搜索..." },
+            google: { action: "https://www.google.com/search", name: "q", placeholder: "使用 Google 搜索..." }
+        };
+
+        // DOM 元素捕捉
+        const modalOverlay = document.getElementById('modalOverlay');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const footerToggle = document.getElementById('footerToggle');
+        const pageFooter = document.getElementById('pageFooter');
+        const engineSelect = document.getElementById('engineSelect');
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const blinkToggle = document.getElementById('blinkToggle');
+        const clockColon = document.getElementById('clockColon');
+        const timeFormatToggle = document.getElementById('timeFormatToggle');
+        const fontToggle = document.getElementById('fontToggle');
+        const doodleToggle = document.getElementById('doodleToggle');
+        const doodleSlot = document.getElementById('doodleSlot');
+
+        // ==================== 核心：缓存管理 ====================
+        
+        // 从 localStorage 读取并应用设置
+        function loadSettings() {
+            const saved = localStorage.getItem('yuyupage_settings');
+            const settings = saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+
+            // 1. 搜索引擎
+            engineSelect.value = settings.engine;
+            applyEngine(settings.engine);
+
+            // 2. 24小时制
+            is24Hour = settings.is24Hour;
+            timeFormatToggle.checked = is24Hour;
+
+            // 3. 分隔符闪烁
+            blinkToggle.checked = settings.blink;
+            applyBlink(settings.blink);
+
+            // 4. 自定义字体
+            fontToggle.checked = settings.customFont;
+            applyFont(settings.customFont);
+
+            // 5. 页脚信息
+            footerToggle.checked = settings.showFooter;
+            applyFooter(settings.showFooter);
+
+            // 注：Doodle 开关不缓存，保持默认关闭
+            doodleToggle.checked = false;
+            doodleSlot.style.display = "none";
+        }
+
+        // 保存当前设置到 localStorage
+        function saveSettings() {
+            const settings = {
+                engine: engineSelect.value,
+                is24Hour: is24Hour,
+                blink: blinkToggle.checked,
+                customFont: fontToggle.checked,
+                showFooter: footerToggle.checked
+            };
+            localStorage.setItem('yuyupage_settings', JSON.stringify(settings));
+        }
+
+        // ==================== UI 渲染辅助函数 ====================
+        
+        function applyEngine(engineKey) {
+            const config = searchEngines[engineKey] || searchEngines.bing;
+            searchForm.action = config.action;
+            searchInput.name = config.name;
+            searchInput.placeholder = config.placeholder;
+        }
+
+        function applyBlink(shouldBlink) {
+            if (shouldBlink) {
+                clockColon.classList.add('blinking');
+            } else {
+                clockColon.classList.remove('blinking');
+            }
+        }
+
+        function applyFont(isCustom) {
+            if (isCustom) {
+                searchInput.classList.add('custom-font');
+            } else {
+                searchInput.classList.remove('custom-font');
+            }
+        }
+
+        function applyFooter(show) {
+            if (show) {
+                pageFooter.style.opacity = "0.6";
+                pageFooter.style.visibility = "visible";
+            } else {
+                pageFooter.style.opacity = "0";
+                pageFooter.style.visibility = "hidden";
+            }
+        }
 
         function updateClock() {
             const now = new Date();
@@ -520,16 +632,14 @@
             document.getElementById('timePeriod').textContent = period;
         }
 
-        // 自动计算并更新页脚年份的函数
         function updateFooterYear() {
             const currentYear = new Date().getFullYear();
             document.getElementById('footerYear').textContent = currentYear;
         }
 
-        const modalOverlay = document.getElementById('modalOverlay');
-        const openSettingsBtn = document.getElementById('openSettingsBtn');
-        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-
+        // ==================== 事件监听器 ====================
+        
+        // 模态框交互
         function openModal() { modalOverlay.classList.add('active'); }
         function closeModal() { modalOverlay.classList.remove('active'); }
 
@@ -539,17 +649,32 @@
             if (e.target === modalOverlay) closeModal();
         });
 
-        const footerToggle = document.getElementById('footerToggle');
-        const pageFooter = document.getElementById('pageFooter');
-        const engineSelect = document.getElementById('engineSelect');
-        const searchForm = document.getElementById('searchForm');
-        const searchInput = document.getElementById('searchInput');
-        const blinkToggle = document.getElementById('blinkToggle');
-        const clockColon = document.getElementById('clockColon');
-        const timeFormatToggle = document.getElementById('timeFormatToggle');
-        const fontToggle = document.getElementById('fontToggle');
-        const doodleToggle = document.getElementById('doodleToggle');
-        const doodleSlot = document.getElementById('doodleSlot');
+        // 选项变更监听 (改变时立即触发渲染并保存到缓存)
+        engineSelect.addEventListener('change', (e) => {
+            applyEngine(e.target.value);
+            saveSettings();
+        });
+
+        timeFormatToggle.addEventListener('change', (e) => {
+            is24Hour = e.target.checked;
+            updateClock();
+            saveSettings();
+        });
+
+        blinkToggle.addEventListener('change', (e) => {
+            applyBlink(e.target.checked);
+            saveSettings();
+        });
+
+        fontToggle.addEventListener('change', (e) => {
+            applyFont(e.target.checked);
+            saveSettings();
+        });
+
+        footerToggle.addEventListener('change', (e) => {
+            applyFooter(e.target.checked);
+            saveSettings();
+        });
 
         doodleToggle.addEventListener('change', (e) => {
             if (e.target.checked) {
@@ -559,55 +684,11 @@
             }
         });
 
-        footerToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                pageFooter.style.opacity = "0.6";
-                pageFooter.style.visibility = "visible";
-            } else {
-                pageFooter.style.opacity = "0";
-                pageFooter.style.visibility = "hidden";
-            }
-        });
-
-        const searchEngines = {
-            bing: { action: "https://cn.bing.com/search", name: "q", placeholder: "使用 Bing 搜索..." },
-            baidu: { action: "https://www.baidu.com/s", name: "wd", placeholder: "使用 百度 搜索..." },
-            google: { action: "https://www.google.com/search", name: "q", placeholder: "使用 Google 搜索..." }
-        };
-
-        engineSelect.addEventListener('change', (e) => {
-            const config = searchEngines[e.target.value];
-            if (config) {
-                searchForm.action = config.action;
-                searchInput.name = config.name;
-                searchInput.placeholder = config.placeholder;
-            }
-        });
-
-        blinkToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                clockColon.classList.add('blinking');
-            } else {
-                clockColon.classList.remove('blinking');
-            }
-        });
-
-        timeFormatToggle.addEventListener('change', (e) => {
-            is24Hour = e.target.checked;
-            updateClock();
-        });
-
-        fontToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                searchInput.classList.add('custom-font');
-            } else {
-                searchInput.classList.remove('custom-font');
-            }
-        });
-
-        // 初始化执行
+        // 初始化
+        loadSettings();
         updateClock();
-        updateFooterYear(); // 执行年份更新
+        updateFooterYear();
+        
         setInterval(updateClock, 1000);
     </script>
 </body>
