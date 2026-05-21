@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YuyuPage | Beta</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -161,7 +162,7 @@
             font-size: 1.1rem;
             border: 2px solid transparent;
             transition: 0.3s;
-            -webkit-user-select: none;
+            -webkit-user-select: text;
             user-select: text;
         }
 
@@ -199,22 +200,20 @@
             -webkit-user-drag: none;
         }
 
-        .tips-box {
+        .poetry-box {
             position: absolute;
             bottom: 52px;
             width: 100%;
-            padding: 0 20px;
             text-align: center;
             font-size: 0.85rem;
-            opacity: 0.68;
-            transition: opacity 0.4s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            opacity: 0.72;
+            padding: 0 20px;
+            transition: 0.3s;
         }
 
-        .tips-box.hidden {
-            display: none;
+        .poetry-box.hidden {
+            opacity: 0;
+            visibility: hidden;
         }
 
         footer {
@@ -240,11 +239,6 @@
             -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
             overflow: hidden;
-            scrollbar-width: none;
-        }
-
-        .modal-overlay::-webkit-scrollbar {
-            display: none;
         }
 
         .modal-overlay.active {
@@ -396,11 +390,6 @@
                 top: 16px;
                 right: 16px;
             }
-
-            .tips-box,
-            footer {
-                font-size: 0.75rem;
-            }
         }
     </style>
 </head>
@@ -442,8 +431,8 @@
 
     </div>
 
-    <div class="tips-box" id="tipsBox">
-        Loading tips...
+    <div class="poetry-box" id="poetryBox">
+        <span id="jinrishici-sentence">正在加载今日诗词....</span>
     </div>
 
     <footer id="pageFooter">
@@ -504,9 +493,9 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">显示 Minecraft Tips</span>
+                        <span class="setting-label">显示今日诗词</span>
 
-                        <input type="checkbox" class="switch-input" id="tipsToggle" checked>
+                        <input type="checkbox" class="switch-input" id="poetryToggle" checked>
 
                         <div class="switch-slider"></div>
                     </label>
@@ -568,12 +557,13 @@
 
     </div>
 
+    <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+
     <script>
+
         const WEATHER_API_KEY = "9d703463f9f67ab79617c7f5fde1fe73";
 
         let is24Hour = true;
-        let tipsData = [];
-        let tipsInterval = null;
 
         const DEFAULT_SETTINGS = {
             engine: 'bing',
@@ -585,7 +575,7 @@
             weatherUnit: 'metric',
             weatherLocation: 'Beijing',
             showDoodle: false,
-            showTips: true
+            showPoetry: true
         };
 
         const searchEngines = {
@@ -641,10 +631,12 @@
         const blinkToggle = document.getElementById('blinkToggle');
         const fontToggle = document.getElementById('fontToggle');
         const footerToggle = document.getElementById('footerToggle');
-        const tipsToggle = document.getElementById('tipsToggle');
 
         const doodleToggle = document.getElementById('doodleToggle');
         const doodleSlot = document.getElementById('doodleSlot');
+
+        const poetryToggle = document.getElementById('poetryToggle');
+        const poetryBox = document.getElementById('poetryBox');
 
         const clockColon = document.getElementById('clockColon');
 
@@ -660,8 +652,6 @@
         const weatherUnitGroup = document.getElementById('weatherUnitGroup');
         const weatherLocationGroup = document.getElementById('weatherLocationGroup');
 
-        const tipsBox = document.getElementById('tipsBox');
-
         function saveSettings() {
 
             const settings = {
@@ -674,7 +664,7 @@
                 weatherUnit: weatherUnitSelect.value,
                 weatherLocation: weatherLocationInput.value || 'Beijing',
                 showDoodle: doodleToggle.checked,
-                showTips: tipsToggle.checked
+                showPoetry: poetryToggle.checked
             };
 
             localStorage.setItem(
@@ -713,8 +703,8 @@
             applyWeatherVisibility(settings.showWeather);
             applyWeatherSettingState(settings.showWeather);
 
-            tipsToggle.checked = settings.showTips;
-            applyTipsVisibility(settings.showTips);
+            poetryToggle.checked = settings.showPoetry;
+            applyPoetry(settings.showPoetry);
 
             doodleToggle.checked = settings.showDoodle;
 
@@ -767,19 +757,12 @@
             }
         }
 
-        function applyTipsVisibility(enabled) {
+        function applyPoetry(enabled) {
 
             if (enabled) {
-                tipsBox.classList.remove('hidden');
-
-                if (tipsData.length > 0) {
-                    startTipsRotation();
-                }
-
+                poetryBox.classList.remove('hidden');
             } else {
-                tipsBox.classList.add('hidden');
-
-                clearInterval(tipsInterval);
+                poetryBox.classList.add('hidden');
             }
         }
 
@@ -801,60 +784,6 @@
                 weatherUnitGroup.classList.add('setting-disabled');
                 weatherLocationGroup.classList.add('setting-disabled');
             }
-        }
-
-        async function fetchTips() {
-
-            try {
-
-                const response = await fetch('./source/tips.json');
-
-                const data = await response.json();
-
-                if (Array.isArray(data)) {
-                    tipsData = data;
-                } else if (Array.isArray(data.tips)) {
-                    tipsData = data.tips;
-                }
-
-                if (tipsData.length > 0 && tipsToggle.checked) {
-                    startTipsRotation();
-                }
-
-            } catch {
-
-                tipsBox.textContent = 'Tips load failed.';
-            }
-        }
-
-        function startTipsRotation() {
-
-            clearInterval(tipsInterval);
-
-            showRandomTip();
-
-            tipsInterval = setInterval(() => {
-
-                showRandomTip();
-
-            }, 15000);
-        }
-
-        function showRandomTip() {
-
-            if (tipsData.length === 0) return;
-
-            const randomIndex = Math.floor(Math.random() * tipsData.length);
-
-            tipsBox.style.opacity = "0";
-
-            setTimeout(() => {
-
-                tipsBox.textContent = tipsData[randomIndex];
-
-                tipsBox.style.opacity = "0.68";
-
-            }, 250);
         }
 
         async function fetchWeather() {
@@ -905,21 +834,13 @@
         }
 
         function updateClock() {
-
             const now = new Date();
-
             let hours = now.getHours();
-
             let minutes = now.getMinutes();
-
             let period = '';
-
             if (!is24Hour) {
-
                 period = hours >= 12 ? 'PM' : 'AM';
-
                 hours = hours % 12;
-
                 hours = hours ? hours : 12;
             }
 
@@ -932,134 +853,98 @@
         }
 
         function updateFooterYear() {
-
             document.getElementById('footerYear').textContent =
                 new Date().getFullYear();
         }
 
         openSettingsBtn.addEventListener('click', () => {
-
             modalOverlay.classList.add('active');
         });
 
         closeSettingsBtn.addEventListener('click', () => {
-
             modalOverlay.classList.remove('active');
         });
 
         modalOverlay.addEventListener('click', (e) => {
-
             if (e.target === modalOverlay) {
                 modalOverlay.classList.remove('active');
             }
         });
 
         engineSelect.addEventListener('change', (e) => {
-
             applyEngine(e.target.value);
-
             saveSettings();
         });
 
         timeFormatToggle.addEventListener('change', (e) => {
-
             is24Hour = e.target.checked;
-
             updateClock();
-
             saveSettings();
         });
 
         blinkToggle.addEventListener('change', (e) => {
-
             applyBlink(e.target.checked);
-
             saveSettings();
         });
 
         fontToggle.addEventListener('change', (e) => {
-
             applyFont(e.target.checked);
-
             saveSettings();
         });
 
         footerToggle.addEventListener('change', (e) => {
-
             applyFooter(e.target.checked);
-
             saveSettings();
         });
 
-        tipsToggle.addEventListener('change', (e) => {
-
-            applyTipsVisibility(e.target.checked);
-
+        poetryToggle.addEventListener('change', (e) => {
+            applyPoetry(e.target.checked);
             saveSettings();
         });
 
         doodleToggle.addEventListener('change', (e) => {
-
             if (e.target.checked) {
                 doodleSlot.style.display = 'flex';
             } else {
                 doodleSlot.style.display = 'none';
             }
-
             saveSettings();
         });
 
         weatherToggle.addEventListener('change', (e) => {
-
             applyWeatherVisibility(e.target.checked);
-
             applyWeatherSettingState(e.target.checked);
-
             if (e.target.checked) {
                 fetchWeather();
             }
-
             saveSettings();
         });
 
         weatherUnitSelect.addEventListener('change', () => {
-
             fetchWeather();
-
             saveSettings();
         });
 
         weatherLocationInput.addEventListener('input', (e) => {
-
             e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-
             saveSettings();
         });
 
         weatherLocationInput.addEventListener('change', () => {
-
             fetchWeather();
-
             saveSettings();
         });
 
         loadSettings();
-
-        fetchTips();
-
         updateClock();
-
         updateFooterYear();
-
         setInterval(updateClock, 1000);
-
         setInterval(() => {
-
             if (weatherToggle.checked) {
                 fetchWeather();
             }
-
         }, 600000);
+
     </script>
 
 </body>
