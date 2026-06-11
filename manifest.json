@@ -14,7 +14,8 @@
   },
   "host_permissions": [
     "https://api.openweathermap.org/*",
-    "https://v2.jinrishici.com/*"
+    "https://v2.jinrishici.com/*",
+    "https://suggestion.baidu.com/*"
   ],
   "permissions": [
     "storage"

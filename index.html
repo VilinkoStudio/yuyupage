@@ -369,6 +369,53 @@
             pointer-events: none;
         }
 
+        /* 联想菜单基础容器 */
+        .sug-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 100%;
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            z-index: 99;
+            display: none;
+            max-height: 212px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+
+        /* 兼容现代浏览器的隐形滚动条，保持精致 */
+        .sug-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sug-menu::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        /* 单个联想词条 */
+        .sug-item {
+            padding: 0 24px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            cursor: pointer;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background-color 0.2s;
+        }
+
+        /* 鼠标悬浮或键盘选中时的视觉高亮 */
+        .sug-item:hover, .sug-item.active {
+            background: var(--input-bg);
+            color: var(--input-focus-border);
+        }
+
         @media(max-width:480px) {
 
             .container {
@@ -426,11 +473,13 @@
             <span class="time-period" id="timePeriod"></span>
         </div>
 
-        <div class="search-wrapper">
+        <div class="search-wrapper" style="position: relative;">
             <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
                 <input id="searchInput" type="text" name="q" class="search-input" placeholder="使用 Bing 搜索..."
                     autocomplete="off" autofocus>
             </form>
+            <!-- 新增：联想词悬浮菜单 -->
+            <div class="sug-menu" id="sugMenu"></div>
         </div>
 
         <div class="doodle-container" id="doodleSlot">
@@ -481,6 +530,7 @@
                     <select class="setting-select" id="fontSelect">
                         <option value="minecraft">像素字体 (Minecraft)</option>
                         <option value="harmonyos">鸿蒙黑体 (HarmonyOS)</option>
+                        <option value="misans">小米字体 (MiSans)</option>
                     </select>
                 </div>
 
@@ -561,6 +611,16 @@
                         <span class="setting-label">搜索框使用像素字体</span>
 
                         <input type="checkbox" class="switch-input" id="fontToggle">
+
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label class="switch-label">
+                        <span class="setting-label">开启搜索联想（BETA）</span>
+
+                        <input type="checkbox" class="switch-input" id="suggestionToggle" checked>
 
                         <div class="switch-slider"></div>
                     </label>

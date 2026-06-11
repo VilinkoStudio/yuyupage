@@ -4,7 +4,7 @@ let is24Hour = true;
 
 const DEFAULT_SETTINGS = {
     engine: 'bing',
-    globalFont: 'minecraft', // 新增默认字体设置
+    globalFont: 'minecraft', 
     is24Hour: true,
     blink: false,
     customFont: false,
@@ -14,93 +14,75 @@ const DEFAULT_SETTINGS = {
     weatherLocation: 'Beijing',
     weatherApiKey: '',
     showDoodle: false,
-    showPoetry: true
+    showPoetry: true,
+    showSuggestion: true // 新增：默认开启联想
 };
 
 const searchEngines = {
-
     bing: {
         action: "https://cn.bing.com/search",
         name: "q",
         placeholder: "使用 Bing 搜索..."
     },
-
     google: {
         action: "https://www.google.com/search",
         name: "q",
         placeholder: "使用 Google 搜索..."
     },
-
     baidu: {
         action: "https://www.baidu.com/s",
         name: "wd",
         placeholder: "使用 百度 搜索..."
     },
-
     sogou: {
         action: "https://www.sogou.com/web",
         name: "query",
         placeholder: "使用 搜狗 搜索..."
     },
-
     360: {
         action: "https://www.so.com/s",
         name: "q",
         placeholder: "使用 360 搜索..."
     },
-
     yandex: {
         action: "https://yandex.com/search/",
         name: "text",
         placeholder: "使用 Yandex 搜索..."
     }
-
 };
 
 const modalOverlay = document.getElementById('modalOverlay');
 const openSettingsBtn = document.getElementById('openSettingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-
 const engineSelect = document.getElementById('engineSelect');
-const fontSelect = document.getElementById('fontSelect'); // 新增字体选择元素
-
+const fontSelect = document.getElementById('fontSelect'); 
 const searchForm = document.getElementById('searchForm');
 const searchInput = document.getElementById('searchInput');
-
 const timeFormatToggle = document.getElementById('timeFormatToggle');
 const blinkToggle = document.getElementById('blinkToggle');
 const fontToggle = document.getElementById('fontToggle');
 const footerToggle = document.getElementById('footerToggle');
-
-//const doodleToggle = document.getElementById('doodleToggle');
-//const doodleSlot = document.getElementById('doodleSlot');
-
 const poetryToggle = document.getElementById('poetryToggle');
 const poetryBox = document.getElementById('poetryBox');
 const poetryContent = document.getElementById('poetry-content');
 const poetryAuthor = document.getElementById('poetry-author');
-
 const clockColon = document.getElementById('clockColon');
-
 const pageFooter = document.getElementById('pageFooter');
-
 const weatherWidget = document.getElementById('weatherWidget');
 const weatherTemp = document.getElementById('weatherTemp');
-
 const weatherToggle = document.getElementById('weatherToggle');
 const weatherUnitSelect = document.getElementById('weatherUnitSelect');
 const weatherLocationInput = document.getElementById('weatherLocationInput');
-
 const weatherUnitGroup = document.getElementById('weatherUnitGroup');
 const weatherLocationGroup = document.getElementById('weatherLocationGroup');
 const weatherApiKeyGroup = document.getElementById('weatherApiKeyGroup');
 const weatherApiKeyInput = document.getElementById('weatherApiKeyInput');
+const suggestionToggle = document.getElementById('suggestionToggle'); // 新增：获取联想开关元素
 
 function saveSettings() {
-
     const settings = {
         engine: engineSelect.value,
-        globalFont: fontSelect.value, // 保存字体设置
+        globalFont: fontSelect.value, 
         is24Hour: is24Hour,
         blink: blinkToggle.checked,
         customFont: fontToggle.checked,
@@ -109,11 +91,11 @@ function saveSettings() {
         weatherUnit: weatherUnitSelect.value,
         weatherLocation: weatherLocationInput.value || 'Beijing',
         weatherApiKey: weatherApiKeyInput.value.trim(),
-        showDoodle: false, // doodle功能已禁用，固定为false或根据实际需求调整，此处保持一致性
-        showPoetry: poetryToggle.checked
+        showDoodle: false, 
+        showPoetry: poetryToggle.checked,
+        showSuggestion: suggestionToggle.checked // 新增：保存联想开关状态
     };
 
-    // 同时存储到 chrome.storage.local
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.set(settings);
     } else {
@@ -122,17 +104,13 @@ function saveSettings() {
 }
 
 async function loadSettings() {
-
     let settings = DEFAULT_SETTINGS;
 
-    // 尝试从 chrome.storage.local 读取设置
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         try {
             const result = await new Promise((resolve) => {
-                chrome.storage.local.get(null, resolve); // 获取所有存储项
+                chrome.storage.local.get(null, resolve); 
             });
-            
-            // 合并默认设置和存储的设置
             settings = { ...DEFAULT_SETTINGS, ...result };
         } catch (e) {
             console.error("Failed to read from chrome.storage", e);
@@ -142,8 +120,8 @@ async function loadSettings() {
     engineSelect.value = settings.engine;
     applyEngine(settings.engine);
 
-    fontSelect.value = settings.globalFont; // 设置下拉菜单值
-    applyGlobalFont(settings.globalFont); // 应用字体
+    fontSelect.value = settings.globalFont; 
+    applyGlobalFont(settings.globalFont); 
 
     is24Hour = settings.is24Hour;
     timeFormatToggle.checked = settings.is24Hour;
@@ -168,13 +146,7 @@ async function loadSettings() {
     poetryToggle.checked = settings.showPoetry;
     applyPoetry(settings.showPoetry);
 
-    //doodleToggle.checked = settings.showDoodle;
-
-    if (settings.showDoodle) {
-        // doodleSlot.style.display = "flex"; // doodleSlot 已注释，此处逻辑保留但无实际效果
-    } else {
-        // doodleSlot.style.display = "none";
-    }
+    suggestionToggle.checked = settings.showSuggestion; // 新增：加载联想开关状态
 
     if (settings.showWeather) {
         fetchWeather();
@@ -182,9 +154,7 @@ async function loadSettings() {
 }
 
 function applyEngine(engine) {
-
     const config = searchEngines[engine];
-
     searchForm.action = config.action;
     searchInput.name = config.name;
     searchInput.placeholder = config.placeholder;
@@ -192,10 +162,11 @@ function applyEngine(engine) {
 
 function applyGlobalFont(fontType) {
     const root = document.documentElement;
-    
-    // 定义字体栈
     const minecraftFontStack = "'MinecraftFont', 'Google Sans', 'Product Sans', 'Helvetica Neue', Arial, sans-serif";
     const harmonyosFontStack = "'HarmonyOS Sans', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif";
+    const misansFontStack = "'MiSans', 'MiSans Latin', 'HarmonyOS Sans', 'Microsoft YaHei', sans-serif";
+
+    let targetFontStack = minecraftFontStack;
 
     if (fontType === 'harmonyos') {
         const style = document.createElement('style');
@@ -207,16 +178,27 @@ function applyGlobalFont(fontType) {
             }
         `;
         document.head.appendChild(style);
-        
-        document.body.style.fontFamily = harmonyosFontStack;
+        targetFontStack = harmonyosFontStack;
+    } else if (fontType === 'misans') {
+        const style = document.createElement('style');
+        style.textContent = `
+            @font-face {
+                font-family: 'MiSans';
+                src: url('./source/misans.ttf') format('truetype');
+                font-display: swap;
+            }
+        `;
+        document.head.appendChild(style);
+        targetFontStack = misansFontStack;
     } else {
-        // 默认 Minecraft 字体
-        document.body.style.fontFamily = minecraftFontStack;
+        targetFontStack = minecraftFontStack;
     }
+
+    document.body.style.fontFamily = targetFontStack;
+    searchInput.style.fontFamily = targetFontStack;
 }
 
 function applyFont(enabled) {
-
     if (enabled) {
         searchInput.classList.add('custom-font');
     } else {
@@ -233,7 +215,6 @@ function applyBlink(enabled) {
 }
 
 function applyFooter(enabled) {
-
     if (enabled) {
         pageFooter.style.opacity = "0.6";
         pageFooter.style.visibility = "visible";
@@ -244,7 +225,6 @@ function applyFooter(enabled) {
 }
 
 function applyPoetry(enabled) {
-
     if (enabled) {
         poetryBox.classList.remove('hidden');
     } else {
@@ -254,26 +234,19 @@ function applyPoetry(enabled) {
 
 async function loadPoetry() {
     try {
-        // 1. 从今日诗词官方 API 获取数据
         const response = await fetch('https://v2.jinrishici.com/one.json');
         const data = await response.json();
-
         if (data && data.status === "success") {
-            // 2. 拿到诗词数据
-            const content = data.data.content; // 诗词正文
-
-            // 3. 将数据渲染到你的页面元素中（仅渲染正文）
+            const content = data.data.content; 
             if (poetryContent) poetryContent.innerText = content;
         }
     } catch (error) {
         console.error('获取诗词失败:', error);
-        // 容错处理：如果断网了，显示一句精选的默认诗词
         if (poetryContent) poetryContent.innerText = "海内存知己，天涯若比邻。";
     }
 }
 
 function applyWeatherVisibility(enabled) {
-
     if (enabled) {
         weatherWidget.classList.remove('hidden');
     } else {
@@ -282,7 +255,6 @@ function applyWeatherVisibility(enabled) {
 }
 
 function applyWeatherSettingState(enabled) {
-
     if (enabled) {
         weatherUnitGroup.classList.remove('setting-disabled');
         weatherLocationGroup.classList.remove('setting-disabled');
@@ -293,18 +265,15 @@ function applyWeatherSettingState(enabled) {
 }
 
 async function fetchWeather() {
-
     const city = weatherLocationInput.value || 'Beijing';
     const unit = weatherUnitSelect.value;
     const symbol = unit === 'metric' ? '°C' : '°F';
-
-    // 获取 API Key：优先使用用户输入的，否则使用默认值
     let apiKey = WEATHER_API_KEY;
     const customKey = weatherApiKeyInput.value.trim();
+    
     if (customKey) {
         apiKey = customKey;
     } else if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        // 尝试从 chrome.storage 读取（作为备选或同步机制）
         try {
             const result = await new Promise((resolve) => {
                 chrome.storage.local.get(['openWeatherApiKey'], resolve);
@@ -318,21 +287,15 @@ async function fetchWeather() {
     }
 
     try {
-
         const response = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=${unit}&appid=${apiKey}`
         );
-
         const data = await response.json();
 
         if (data.main) {
-
             const temp = Math.round(data.main.temp);
-
             weatherTemp.textContent = `${temp}${symbol}`;
-
             const icon = weatherWidget.querySelector('i');
-
             const weatherMain = (data.weather[0].main || '').toLowerCase();
 
             if (weatherMain.includes('cloud')) {
@@ -346,11 +309,9 @@ async function fetchWeather() {
             } else {
                 icon.className = 'fa-solid fa-cloud';
             }
-
         } else if (data.cod === 401) {
             weatherTemp.textContent = 'Key Err';
         }
-
     } catch {
         weatherTemp.textContent = '--';
     }
@@ -376,8 +337,7 @@ function updateClock() {
 }
 
 function updateFooterYear() {
-    document.getElementById('footerYear').textContent =
-        new Date().getFullYear();
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
 }
 
 openSettingsBtn.addEventListener('click', () => {
@@ -430,15 +390,6 @@ poetryToggle.addEventListener('change', (e) => {
     saveSettings();
 });
 
-// doodleToggle.addEventListener('change', (e) => {
-//    if (e.target.checked) {
-//        doodleSlot.style.display = 'flex';
-//    } else {
-//        doodleSlot.style.display = 'none';
-//    }
-//    saveSettings();
-//});
-
 weatherToggle.addEventListener('change', (e) => {
     applyWeatherVisibility(e.target.checked);
     applyWeatherSettingState(e.target.checked);
@@ -473,17 +424,171 @@ weatherApiKeyInput.addEventListener('change', () => {
     }
 });
 
-// 屏蔽除输入框外的右键菜单
 document.addEventListener('contextmenu', (e) => {
-    // 检查目标元素是否是输入框或文本域
     const target = e.target;
     const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-    
-    // 如果目标不是输入框，则阻止右键菜单
     if (!isInput) {
         e.preventDefault();
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+    const sugMenu = document.getElementById('sugMenu');
+
+    if (!searchInput || !sugMenu) return;
+
+    let activeSugIndex = -1; 
+
+    // 新增：检查联想功能是否开启
+    function isSuggestionEnabled() {
+        return suggestionToggle ? suggestionToggle.checked : true;
+    }
+
+    searchInput.addEventListener('input', debounce(() => {
+        // 新增：如果联想功能关闭，直接隐藏菜单并返回
+        if (!isSuggestionEnabled()) {
+            hideSugMenu();
+            return;
+        }
+        const query = searchInput.value.trim();
+        if (!query) {
+            hideSugMenu();
+            return;
+        }
+        fetchBaiduSug(query);
+    }, 150)); 
+
+    function fetchBaiduSug(text) {
+        const url = `https://suggestion.baidu.com/su?wd=${encodeURIComponent(text)}&p=3&prod=pc&cb=`;
+        
+        fetch(url, { method: 'GET', mode: 'cors' })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.arrayBuffer();
+            })
+            .then(buffer => {
+                const decoder = new TextDecoder('gbk');
+                const textData = decoder.decode(buffer);
+                const startIdx = textData.indexOf('s:[]');
+                const startIdxValid = textData.indexOf('s:[');
+                if (startIdxValid !== -1) {
+                    const endIdx = textData.indexOf(']', startIdxValid);
+                    if (endIdx !== -1) {
+                        const arrStr = textData.substring(startIdxValid + 2, endIdx + 1);
+                        const cleanArrStr = arrStr.replace(/'/g, '"');
+                        const sugArray = JSON.parse(cleanArrStr);
+                        renderSugMenu(sugArray);
+                        return;
+                    }
+                }
+                hideSugMenu();
+            })
+            .catch(err => {
+                console.error(err);
+                hideSugMenu();
+            });
+    }
+
+    function renderSugMenu(list) {
+        const displayList = list.slice(0, 10); 
+
+        if (displayList.length === 0) {
+            hideSugMenu();
+            return;
+        }
+        
+        sugMenu.innerHTML = '';
+        activeSugIndex = -1;
+
+        displayList.forEach((itemText) => {
+            const item = document.createElement('div');
+            item.className = 'sug-item';
+            
+            if (searchInput.classList.contains('custom-font')) {
+                item.style.fontFamily = "'MinecraftFont', sans-serif";
+            } else {
+                item.style.fontFamily = document.body.style.fontFamily;
+            }
+            item.textContent = itemText;
+
+            item.addEventListener('click', () => {
+                searchInput.value = itemText;
+                hideSugMenu();
+                searchForm.submit(); 
+            });
+
+            sugMenu.appendChild(item);
+        });
+
+        sugMenu.style.display = 'block';
+    }
+
+    function hideSugMenu() {
+        sugMenu.style.display = 'none';
+        sugMenu.innerHTML = '';
+        activeSugIndex = -1;
+    }
+
+    searchInput.addEventListener('keydown', (e) => {
+        const items = sugMenu.querySelectorAll('.sug-item');
+        if (sugMenu.style.display !== 'block' || items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeSugIndex = (activeSugIndex + 1) % items.length;
+            updateSugSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeSugIndex = (activeSugIndex - 1 + items.length) % items.length;
+            updateSugSelection(items);
+        } else if (e.key === 'Enter' && activeSugIndex >= 0) {
+            e.preventDefault();
+            items[activeSugIndex].click(); 
+        } else if (e.key === 'Escape') {
+            hideSugMenu();
+        }
+    });
+
+    function updateSugSelection(items) {
+        items.forEach((item, index) => {
+            if (index === activeSugIndex) {
+                item.classList.add('active');
+                searchInput.value = item.textContent; 
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!searchForm.contains(e.target) && !sugMenu.contains(e.target)) {
+            hideSugMenu();
+        }
+    });
+
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+});
+
+// 新增：监听联想开关变化并保存设置
+if (suggestionToggle) {
+    suggestionToggle.addEventListener('change', () => {
+        saveSettings();
+        // 如果关闭开关，立即隐藏联想菜单
+        if (!suggestionToggle.checked) {
+            const sugMenu = document.getElementById('sugMenu');
+            if (sugMenu) sugMenu.style.display = 'none';
+        }
+    });
+}
 
 loadSettings();
 updateClock();
