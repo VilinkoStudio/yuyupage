@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "YuyuPage",
+  "version": "1.0.0",
+  "description": "一个简洁的起始页。",
+  "author": "Copyright (c) 2026 Vilinko. All rights reserved.",
+  "icons": {
+    "16": "source/icon16.png",
+    "48": "source/icon48.png",
+    "128": "source/icon128.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "host_permissions": [
+    "https://api.openweathermap.org/*",
+    "https://v2.jinrishici.com/*"
+  ],
+  "permissions": [
+    "storage"
+  ]
+}
