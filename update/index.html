@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>版本检查</title>
+    <style>
+        :root {
+            --bg-color: #fbfeff;
+            --card-bg: #ffffff;
+            --text-color: #191c1e;
+            --text-secondary: #70787d;
+            --border-color: #e1e2e5;
+            --primary-color: #5279FB;
+            --primary-container: #eff1f3;
+            --on-primary-container: #191c1e;
+            --btn-text-color: #ffffff;
+            --transition-speed: 0.3s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #191c1e;
+                --card-bg: #2d3133;
+                --text-color: #e2e2e5;
+                --text-secondary: #8a9296;
+                --border-color: #43474a;
+                --primary-color: #9AB1FA;
+                --primary-container: #43474a;
+                --on-primary-container: #e2e2e5;
+                --btn-text-color: #191c1e;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            padding-top: 100px;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--text-color);
+        }
+
+        .message {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+            white-space: pre-line;
+            text-align: left;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--btn-text-color);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 100px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color var(--transition-speed), color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .btn:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            transform: scale(1.02);
+        }
+
+        .btn-download {
+            background-color: var(--primary-color);
+            color: var(--btn-text-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: background-color var(--transition-speed), color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .btn-download:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            transform: scale(1.02);
+        }
+
+        .hidden {
+            display: none;
+        }
+        
+        #loading {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="loading">正在检查版本...</div>
+        
+        <div id="up-to-date-view" class="hidden">
+            <h1>已是最新版本</h1>
+            <p class="message" style="text-align: center;">您当前使用的是最新版本，无需更新。</p>
+            <button class="btn" onclick="closeWindow()">确认</button>
+        </div>
+
+        <div id="update-required-view" class="hidden">
+            <h1>需要更新</h1>
+            <p class="message" style="text-align: center;">发现新版本可用，请下载并安装更新。</p>
+            <a href="#" id="download-link" class="btn-download" target="_blank">立即下载</a>
+        </div>
+        
+        <div id="error-view" class="hidden">
+            <h1>检查失败</h1>
+            <p class="message" style="text-align: center;">无法获取版本信息，请稍后重试。</p>
+        </div>
+    </div>
+
+    <script>
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function closeWindow() {
+            window.close();
+            if (!window.closed) {
+                alert('请手动关闭当前标签页');
+            }
+        }
+
+        async function checkVersion() {
+            const currentVerParam = getQueryParam('ver');
+            
+            let currentVer = 0;
+            if (currentVerParam !== null && currentVerParam !== '') {
+                const parsed = parseInt(currentVerParam, 10);
+                if (!isNaN(parsed)) {
+                    currentVer = parsed;
+                }
+            }
+
+            try {
+                const versionResponse = await fetch(`version.json?_t=${Date.now()}`);
+                if (!versionResponse.ok) throw new Error('Failed to fetch version.json');
+                const versionData = await versionResponse.json();
+                
+                const rawVersion = versionData.latestVersion || versionData.version || versionData;
+                const latestVer = parseInt(rawVersion, 10);
+
+                if (isNaN(latestVer)) throw new Error('Invalid version data');
+
+                const loadingEl = document.getElementById('loading');
+                const upToDateEl = document.getElementById('up-to-date-view');
+                const updateRequiredEl = document.getElementById('update-required-view');
+
+                loadingEl.classList.add('hidden');
+
+                if (currentVer >= latestVer) {
+                    upToDateEl.classList.remove('hidden');
+                } else {
+                    const downloadLink = document.getElementById('download-link');
+                    downloadLink.href = `https://raw.githubusercontent.com/VilinkoStudio/yuyupage/refs/heads/crx/${latestVer}.zip`;
+                    
+                    updateRequiredEl.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Version check error:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-view').classList.remove('hidden');
+            }
+        }
+
+        window.onload = checkVersion;
+    </script>
+</body>
+</html>
