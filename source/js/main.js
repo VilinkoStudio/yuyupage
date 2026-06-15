@@ -227,6 +227,33 @@ function applyPoetry(enabled) {
     }
 }
 
+// 添加双击诗词搜索功能
+if (poetryContent) {
+    poetryContent.addEventListener('dblclick', (e) => {
+        // 阻止事件冒泡，防止触发其他可能的双击行为
+        e.stopPropagation();
+        
+        // 获取诗词内容，去除可能的空白字符
+        const content = poetryContent.innerText.trim();
+        if (!content) return;
+
+        // 获取当前设置的搜索引擎
+        const currentEngine = engineSelect ? engineSelect.value : 'bing';
+        const engineConfig = searchEngines[currentEngine];
+        
+        if (engineConfig) {
+            // 构建搜索URL
+            const searchUrl = `${engineConfig.action}?${engineConfig.name}=${encodeURIComponent(content)}`;
+            // 在新标签页打开搜索结果
+            window.open(searchUrl, '_blank');
+        }
+    });
+    
+    // 添加提示样式，让用户知道可以双击
+    poetryContent.style.cursor = 'pointer';
+    poetryContent.title = '双击搜索诗词';
+}
+
 async function loadPoetry() {
     try {
         const response = await fetch('https://v2.jinrishici.com/one.json');
