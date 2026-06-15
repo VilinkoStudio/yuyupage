@@ -14,8 +14,7 @@ const DEFAULT_SETTINGS = {
     weatherLocation: 'Beijing',
     weatherApiKey: '',
     showDoodle: false,
-    showPoetry: true,
-    showSuggestion: true // 新增：默认开启联想
+    showPoetry: true
 };
 
 const searchEngines = {
@@ -77,7 +76,6 @@ const weatherUnitGroup = document.getElementById('weatherUnitGroup');
 const weatherLocationGroup = document.getElementById('weatherLocationGroup');
 const weatherApiKeyGroup = document.getElementById('weatherApiKeyGroup');
 const weatherApiKeyInput = document.getElementById('weatherApiKeyInput');
-const suggestionToggle = document.getElementById('suggestionToggle'); // 新增：获取联想开关元素
 
 function saveSettings() {
     const settings = {
@@ -92,8 +90,7 @@ function saveSettings() {
         weatherLocation: weatherLocationInput.value || 'Beijing',
         weatherApiKey: weatherApiKeyInput.value.trim(),
         showDoodle: false, 
-        showPoetry: poetryToggle.checked,
-        showSuggestion: suggestionToggle.checked // 新增：保存联想开关状态
+        showPoetry: poetryToggle.checked
     };
 
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
@@ -145,8 +142,6 @@ async function loadSettings() {
 
     poetryToggle.checked = settings.showPoetry;
     applyPoetry(settings.showPoetry);
-
-    suggestionToggle.checked = settings.showSuggestion; // 新增：加载联想开关状态
 
     if (settings.showWeather) {
         fetchWeather();
@@ -432,6 +427,17 @@ document.addEventListener('contextmenu', (e) => {
     }
 });
 
+loadSettings();
+updateClock();
+updateFooterYear();
+loadPoetry();
+setInterval(updateClock, 1000);
+setInterval(() => {
+    if (weatherToggle.checked) {
+        fetchWeather();
+    }
+}, 600000);
+
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const searchForm = document.getElementById('searchForm');
@@ -441,26 +447,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activeSugIndex = -1; 
 
-    // 新增：检查联想功能是否开启
-    function isSuggestionEnabled() {
-        return suggestionToggle ? suggestionToggle.checked : true;
-    }
-
     searchInput.addEventListener('input', debounce(() => {
-        // 新增：如果联想功能关闭，直接隐藏菜单并返回
-        if (!isSuggestionEnabled()) {
-            hideSugMenu();
-            return;
-        }
         const query = searchInput.value.trim();
         if (!query) {
             hideSugMenu();
             return;
         }
-        fetchBaiduSug(query);
+        
+        let customMenuResult = tryCalculate(query) || tryTimeCalculate(query);
+        fetchBaiduSug(query, customMenuResult);
     }, 150)); 
 
-    function fetchBaiduSug(text) {
+    function tryCalculate(str) {
+        const cleanStr = str.replace(/\s+/g, '');
+        const calcRegex = /^(-?\d+(\.\d+)?)([\+\-\*\/])(-?\d+(\.\d+)?)$/;
+        const match = cleanStr.match(calcRegex);
+        
+        if (!match) return null;
+        
+        const num1 = parseFloat(match[1]);
+        const op = match[3];
+        const num2 = parseFloat(match[4]);
+        let res = 0;
+        
+        switch (op) {
+            case '+': res = num1 + num2; break;
+            case '-': res = num1 - num2; break;
+            case '*': res = num1 * num2; break;
+            case '/': 
+                if (num2 === 0) return { type: 'calc', text: '计算算式：除数不能为零', value: '' };
+                res = num1 / num2; 
+                break;
+            default: return null;
+        }
+        
+        if (!Number.isInteger(res)) {
+            res = parseFloat(res.toFixed(8));
+        }
+        
+        return { type: 'calc', text: `计算算式：${num1} ${op} ${num2} = ${res}`, value: res.toString() };
+    }
+
+    function tryTimeCalculate(str) {
+        if (!str.toLowerCase().startsWith('totime')) return null;
+        
+        const dateStr = str.substring(6).trim();
+        const dateRegex = /^(\d{4})[-/.]?(\d{2})[-/.]?(\d{2})$/;
+        const match = dateStr.match(dateRegex);
+        
+        if (!match) return null;
+        
+        const targetDate = new Date(`${match[1]}-${match[2]}-${match[3]}T00:00:00`);
+        if (isNaN(targetDate.getTime())) return null;
+        
+        const nowDate = new Date();
+        const currentDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+        
+        const diffTime = targetDate.getTime() - currentDate.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        
+        return { type: 'time', text: diffDays.toString(), value: diffDays.toString() };
+    }
+
+    function fetchBaiduSug(text, customMenuResult) {
         const url = `https://suggestion.baidu.com/su?wd=${encodeURIComponent(text)}&p=3&prod=pc&cb=`;
         
         fetch(url, { method: 'GET', mode: 'cors' })
@@ -471,58 +520,91 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(buffer => {
                 const decoder = new TextDecoder('gbk');
                 const textData = decoder.decode(buffer);
-                const startIdx = textData.indexOf('s:[]');
                 const startIdxValid = textData.indexOf('s:[');
+                let sugArray = [];
+                
                 if (startIdxValid !== -1) {
                     const endIdx = textData.indexOf(']', startIdxValid);
                     if (endIdx !== -1) {
                         const arrStr = textData.substring(startIdxValid + 2, endIdx + 1);
                         const cleanArrStr = arrStr.replace(/'/g, '"');
-                        const sugArray = JSON.parse(cleanArrStr);
-                        renderSugMenu(sugArray);
-                        return;
+                        sugArray = JSON.parse(cleanArrStr);
                     }
                 }
-                hideSugMenu();
+                
+                renderSugMenu(sugArray, customMenuResult);
             })
             .catch(err => {
                 console.error(err);
-                hideSugMenu();
+                renderSugMenu([], customMenuResult);
             });
     }
 
-    function renderSugMenu(list) {
-        const displayList = list.slice(0, 10); 
-
-        if (displayList.length === 0) {
-            hideSugMenu();
-            return;
-        }
-        
+    function renderSugMenu(list, customMenuResult) {
         sugMenu.innerHTML = '';
         activeSugIndex = -1;
 
-        displayList.forEach((itemText) => {
-            const item = document.createElement('div');
-            item.className = 'sug-item';
+        let hasContent = false;
+
+        if (customMenuResult) {
+            const customItem = document.createElement('div');
+            customItem.className = 'sug-item custom-tool-item';
+            customItem.setAttribute('data-value', customMenuResult.value);
+            
+            if (customMenuResult.type === 'calc') {
+                customItem.style.fontWeight = 'bold';
+                customItem.style.color = 'var(--input-focus-border)';
+            } else if (customMenuResult.type === 'time') {
+                customItem.style.fontWeight = 'bold';
+                customItem.style.color = '#5279FB'; 
+            }
             
             if (searchInput.classList.contains('custom-font')) {
-                item.style.fontFamily = "'MinecraftFont', sans-serif";
+                customItem.style.fontFamily = "'MinecraftFont', sans-serif";
             } else {
-                item.style.fontFamily = document.body.style.fontFamily;
+                customItem.style.fontFamily = document.body.style.fontFamily;
             }
-            item.textContent = itemText;
-
-            item.addEventListener('click', () => {
-                searchInput.value = itemText;
+            
+            customItem.textContent = customMenuResult.text;
+            
+            customItem.addEventListener('click', () => {
+                searchInput.value = customMenuResult.value;
                 hideSugMenu();
-                searchForm.submit(); 
             });
+            
+            sugMenu.appendChild(customItem);
+            hasContent = true;
+        }
 
-            sugMenu.appendChild(item);
-        });
+        const displayList = list.slice(0, 10); 
+        if (displayList.length > 0) {
+            hasContent = true;
+            displayList.forEach((itemText) => {
+                const item = document.createElement('div');
+                item.className = 'sug-item';
+                
+                if (searchInput.classList.contains('custom-font')) {
+                    item.style.fontFamily = "'MinecraftFont', sans-serif";
+                } else {
+                    item.style.fontFamily = document.body.style.fontFamily;
+                }
+                item.textContent = itemText;
 
-        sugMenu.style.display = 'block';
+                item.addEventListener('click', () => {
+                    searchInput.value = itemText;
+                    hideSugMenu();
+                    searchForm.submit(); 
+                });
+
+                sugMenu.appendChild(item);
+            });
+        }
+
+        if (hasContent) {
+            sugMenu.style.display = 'block';
+        } else {
+            sugMenu.style.display = 'none';
+        }
     }
 
     function hideSugMenu() {
@@ -555,7 +637,11 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach((item, index) => {
             if (index === activeSugIndex) {
                 item.classList.add('active');
-                searchInput.value = item.textContent; 
+                if (item.classList.contains('custom-tool-item')) {
+                    searchInput.value = item.getAttribute('data-value');
+                } else {
+                    searchInput.value = item.textContent; 
+                }
                 item.scrollIntoView({ block: 'nearest' });
             } else {
                 item.classList.remove('active');
@@ -577,26 +663,3 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
-
-// 新增：监听联想开关变化并保存设置
-if (suggestionToggle) {
-    suggestionToggle.addEventListener('change', () => {
-        saveSettings();
-        // 如果关闭开关，立即隐藏联想菜单
-        if (!suggestionToggle.checked) {
-            const sugMenu = document.getElementById('sugMenu');
-            if (sugMenu) sugMenu.style.display = 'none';
-        }
-    });
-}
-
-loadSettings();
-updateClock();
-updateFooterYear();
-loadPoetry();
-setInterval(updateClock, 1000);
-setInterval(() => {
-    if (weatherToggle.checked) {
-        fetchWeather();
-    }
-}, 600000);
