@@ -107,6 +107,20 @@
             transform: rotate(45deg);
         }
 
+        .docs-text {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.35rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .docs-text:hover {
+            opacity: 1;
+        }
+
         .container {
             width: 100%;
             max-width: 600px;
@@ -369,6 +383,75 @@
             pointer-events: none;
         }
 
+        .trust-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 200;
+            backdrop-filter: blur(4px);
+        }
+
+        .trust-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .trust-modal-card {
+            background: var(--modal-bg);
+            width: 90%;
+            max-width: 320px;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transform: scale(0.9);
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .trust-modal-overlay.active .trust-modal-card {
+            transform: scale(1);
+        }
+
+        .trust-modal-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .trust-modal-body {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .trust-modal-action {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .trust-modal-btn {
+            background-color: var(--input-focus-border);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
         /* 联想菜单基础容器 */
         .sug-menu {
             position: absolute;
@@ -457,6 +540,10 @@
             <i class="fa-solid fa-cloud"></i>
             <span id="weatherTemp"> -- °C</span>
         </div>
+
+        <button class="docs-text" id="alltext">
+            <i class="fa-solid fa-note-sticky"></i>
+        </button>
 
         <button class="settings-btn" id="openSettingsBtn">
             <i class="fa-solid fa-gear"></i>
@@ -577,6 +664,36 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
+                        <span class="setting-label">Vilinko 信任环</span>
+
+                        <input type="checkbox" class="switch-input" id="vilinkoConnect" disabled>
+
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" id="noteBtnGroup">
+                    <label class="switch-label">
+                        <span class="setting-label">主页显示便签按钮</span>
+
+                        <input type="checkbox" class="switch-input" id="noteBtnToggle" checked>
+
+                        <div class="switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="setting-item" id="noteAppGroup">
+                    <label class="setting-label">选择便签信任应用</label>
+
+                    <select class="setting-select" id="noteAppSelect">
+                        <option value="LightFrame">LightFrame</option>
+                        <option value="Pogget">Pogget</option>
+                        <option value="Synap">Synap</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label class="switch-label">
                         <span class="setting-label">显示 Doodle</span>
                         <span class="setting-label" style="opacity: 0.6;">不支持</span>
 
@@ -626,14 +743,27 @@
                     </label>
                 </div>
 
-                <div style="text-align: left; margin-top: 24px; opacity: 0.5; font-size: 0.8rem;">
-                    Version 1.0.3 Build3 20260615
+                <div style="text-align: left; margin-top: 24px; opacity: 0.5; font-size: 0.8rem; display: flex; align-items: center; gap: 12px;">
+                    <span>Version 1.0.4 Build4 20260616</span>
+                    <a href="https://yuyupage.vilinko.com/update/index.html?ver=104" target="_blank" style="color: var(--text-color); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; cursor: pointer;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">检查更新</a>
                 </div>
 
             </div>
 
         </div>
 
+    </div>
+
+    <div class="trust-modal-overlay" id="trustModalOverlay">
+        <div class="trust-modal-card">
+            <div class="trust-modal-title">信任环未启动</div>
+            <div class="trust-modal-body">
+                请先在设置中打开信任环功能，然后重新尝试启动便签。
+            </div>
+            <div class="trust-modal-action">
+                <button class="trust-modal-btn" id="closeTrustModalBtn">确定</button>
+            </div>
+        </div>
     </div>
 
     <script src="source/js/main.js" type="module"></script>

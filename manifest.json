@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YuyuPage",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "一个简洁的起始页。",
   "author": "Copyright (c) 2026 Vilinko. All rights reserved.",
   "icons": {

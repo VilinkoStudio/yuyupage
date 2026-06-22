@@ -1,7 +1,3 @@
-const WEATHER_API_KEY = "9d703463f9f67ab79617c7f5fde1fe73";
-
-let is24Hour = true;
-
 const DEFAULT_SETTINGS = {
     engine: 'bing',
     globalFont: 'minecraft', 
@@ -14,8 +10,15 @@ const DEFAULT_SETTINGS = {
     weatherLocation: 'Beijing',
     weatherApiKey: '',
     showDoodle: false,
-    showPoetry: true
+    showPoetry: true,
+    vilinkoConnect: false,
+    showNoteBtn: true,
+    noteApp: 'Pogget'
 };
+
+let is24Hour = true;
+
+const WEATHER_API_KEY = '9d703463f9f67ab79617c7f5fde1fe73';
 
 const searchEngines = {
     bing: {
@@ -76,6 +79,14 @@ const weatherUnitGroup = document.getElementById('weatherUnitGroup');
 const weatherLocationGroup = document.getElementById('weatherLocationGroup');
 const weatherApiKeyGroup = document.getElementById('weatherApiKeyGroup');
 const weatherApiKeyInput = document.getElementById('weatherApiKeyInput');
+const vilinkoConnectToggle = document.getElementById('vilinkoConnect');
+const noteBtnToggle = document.getElementById('noteBtnToggle'); // 新增：获取便签按钮开关引用
+const noteAppSelect = document.getElementById('noteAppSelect'); // 新增：获取便签应用选择引用
+const noteBtnGroup = document.getElementById('noteBtnGroup'); // 新增：获取便签按钮组引用
+const noteAppGroup = document.getElementById('noteAppGroup'); // 新增：获取便签应用组引用
+const trustModalOverlay = document.getElementById('trustModalOverlay');
+const closeTrustModalBtn = document.getElementById('closeTrustModalBtn');
+const allTextBtn = document.getElementById('alltext'); // 新增：获取便签按钮引用
 
 function saveSettings() {
     const settings = {
@@ -90,7 +101,10 @@ function saveSettings() {
         weatherLocation: weatherLocationInput.value || 'Beijing',
         weatherApiKey: weatherApiKeyInput.value.trim(),
         showDoodle: false, 
-        showPoetry: poetryToggle.checked
+        showPoetry: poetryToggle.checked,
+        vilinkoConnect: vilinkoConnectToggle.checked,
+        showNoteBtn: noteBtnToggle.checked, // 新增：保存便签按钮显示状态
+        noteApp: noteAppSelect.value // 新增：保存便签应用选择
     };
 
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
@@ -142,6 +156,27 @@ async function loadSettings() {
 
     poetryToggle.checked = settings.showPoetry;
     applyPoetry(settings.showPoetry);
+
+    // 新增：加载信任环状态
+    if (vilinkoConnectToggle) {
+        vilinkoConnectToggle.checked = settings.vilinkoConnect;
+    }
+
+    // 新增：加载便签按钮显示状态
+    if (noteBtnToggle) {
+        noteBtnToggle.checked = settings.showNoteBtn;
+    }
+
+    // 新增：加载便签应用选择
+    if (noteAppSelect) {
+        noteAppSelect.value = settings.noteApp;
+    }
+
+    // 新增：根据信任环状态更新相关控件的禁用状态
+    updateTrustRingDependentControls(vilinkoConnectToggle.checked);
+
+    // 新增：应用便签按钮可见性
+    applyNoteBtnVisibility(settings.showNoteBtn);
 
     if (settings.showWeather) {
         fetchWeather();
@@ -412,6 +447,23 @@ poetryToggle.addEventListener('change', (e) => {
     saveSettings();
 });
 
+// 新增：监听信任环开关变化
+vilinkoConnectToggle.addEventListener('change', (e) => {
+    updateTrustRingDependentControls(e.target.checked);
+    saveSettings();
+});
+
+// 新增：监听便签按钮开关变化
+noteBtnToggle.addEventListener('change', (e) => {
+    applyNoteBtnVisibility(e.target.checked);
+    saveSettings();
+});
+
+// 新增：监听便签应用选择变化
+noteAppSelect.addEventListener('change', () => {
+    saveSettings();
+});
+
 weatherToggle.addEventListener('change', (e) => {
     applyWeatherVisibility(e.target.checked);
     applyWeatherSettingState(e.target.checked);
@@ -453,6 +505,39 @@ document.addEventListener('contextmenu', (e) => {
         e.preventDefault();
     }
 });
+
+// 新增：便签按钮点击处理
+if (allTextBtn) {
+    allTextBtn.addEventListener('click', () => {
+        // 检查信任环是否启用
+        const isTrustRingEnabled = vilinkoConnectToggle ? vilinkoConnectToggle.checked : false;
+        
+        if (!isTrustRingEnabled) {
+            // 如果未启用，显示弹窗
+            if (trustModalOverlay) {
+                trustModalOverlay.classList.add('active');
+            }
+        } else {
+            // 如果已启用，执行原有的便签逻辑（此处假设原有逻辑在其他地方或暂无具体实现，仅做占位）
+            console.log('Trust ring enabled, opening notes...');
+            // TODO: 添加打开便签的具体逻辑
+        }
+    });
+}
+
+if (closeTrustModalBtn && trustModalOverlay) {
+    closeTrustModalBtn.addEventListener('click', () => {
+        trustModalOverlay.classList.remove('active');
+    });
+}
+
+if (trustModalOverlay) {
+    trustModalOverlay.addEventListener('click', (e) => {
+        if (e.target === trustModalOverlay) {
+            trustModalOverlay.classList.remove('active');
+        }
+    });
+}
 
 loadSettings();
 updateClock();
@@ -690,3 +775,43 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+function applyNoteBtnVisibility(enabled) {
+    const allTextBtn = document.getElementById('alltext');
+    if (allTextBtn) {
+        if (enabled) {
+            allTextBtn.style.display = 'block'; // 或者 flex，取决于原有样式，这里假设 block 或继承
+            allTextBtn.style.visibility = 'visible';
+            allTextBtn.style.opacity = '0.7'; // 恢复默认透明度
+        } else {
+            allTextBtn.style.display = 'none';
+        }
+    }
+}
+
+// 新增：更新依赖信任环的控件状态
+function updateTrustRingDependentControls(isTrustRingEnabled) {
+    const isDisabled = !isTrustRingEnabled;
+    
+    if (noteBtnToggle) {
+        noteBtnToggle.disabled = isDisabled;
+    }
+    if (noteBtnGroup) {
+        if (isDisabled) {
+            noteBtnGroup.classList.add('setting-disabled');
+        } else {
+            noteBtnGroup.classList.remove('setting-disabled');
+        }
+    }
+
+    if (noteAppSelect) {
+        noteAppSelect.disabled = isDisabled;
+    }
+    if (noteAppGroup) {
+        if (isDisabled) {
+            noteAppGroup.classList.add('setting-disabled');
+        } else {
+            noteAppGroup.classList.remove('setting-disabled');
+        }
+    }
+}
