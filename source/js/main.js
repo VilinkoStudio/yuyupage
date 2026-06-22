@@ -13,7 +13,8 @@ const DEFAULT_SETTINGS = {
     showPoetry: true,
     vilinkoConnect: false,
     showNoteBtn: true,
-    noteApp: 'Pogget'
+    noteApp: 'Pogget',
+    language: 'zh-CN'
 };
 
 let is24Hour = true;
@@ -58,6 +59,7 @@ const openSettingsBtn = document.getElementById('openSettingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const engineSelect = document.getElementById('engineSelect');
 const fontSelect = document.getElementById('fontSelect'); 
+const languageSelect = document.getElementById('languageSelect');
 const searchForm = document.getElementById('searchForm');
 const searchInput = document.getElementById('searchInput');
 const timeFormatToggle = document.getElementById('timeFormatToggle');
@@ -80,13 +82,15 @@ const weatherLocationGroup = document.getElementById('weatherLocationGroup');
 const weatherApiKeyGroup = document.getElementById('weatherApiKeyGroup');
 const weatherApiKeyInput = document.getElementById('weatherApiKeyInput');
 const vilinkoConnectToggle = document.getElementById('vilinkoConnect');
-const noteBtnToggle = document.getElementById('noteBtnToggle'); // 新增：获取便签按钮开关引用
-const noteAppSelect = document.getElementById('noteAppSelect'); // 新增：获取便签应用选择引用
-const noteBtnGroup = document.getElementById('noteBtnGroup'); // 新增：获取便签按钮组引用
-const noteAppGroup = document.getElementById('noteAppGroup'); // 新增：获取便签应用组引用
+const noteBtnToggle = document.getElementById('noteBtnToggle');
+const noteAppSelect = document.getElementById('noteAppSelect');
+const noteBtnGroup = document.getElementById('noteBtnGroup');
+const noteAppGroup = document.getElementById('noteAppGroup');
 const trustModalOverlay = document.getElementById('trustModalOverlay');
 const closeTrustModalBtn = document.getElementById('closeTrustModalBtn');
-const allTextBtn = document.getElementById('alltext'); // 新增：获取便签按钮引用
+const allTextBtn = document.getElementById('alltext');
+
+let translations = {}; // 存储翻译数据
 
 function saveSettings() {
     const settings = {
@@ -103,14 +107,79 @@ function saveSettings() {
         showDoodle: false, 
         showPoetry: poetryToggle.checked,
         vilinkoConnect: vilinkoConnectToggle.checked,
-        showNoteBtn: noteBtnToggle.checked, // 新增：保存便签按钮显示状态
-        noteApp: noteAppSelect.value // 新增：保存便签应用选择
+        showNoteBtn: noteBtnToggle.checked,
+        noteApp: noteAppSelect.value,
+        language: languageSelect ? languageSelect.value : 'zh-CN'
     };
 
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.set(settings);
     } else {
         console.warn('chrome.storage.local is not available');
+    }
+}
+
+async function loadTranslations() {
+    try {
+        const response = await fetch('./source/txt/words.json');
+        translations = await response.json();
+    } catch (error) {
+        console.error('Failed to load translations:', error);
+        translations = {};
+    }
+}
+
+function applyLanguage(lang) {
+    if (!translations[lang]) return;
+    
+    const dict = translations[lang];
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+            if (key === 'footer_copyright') {
+                const yearSpan = el.querySelector('#footerYear');
+                const year = yearSpan ? yearSpan.textContent : new Date().getFullYear();
+                el.innerHTML = dict[key].replace('{year}', `<span id="footerYear">${year}</span>`);
+            } else {
+                el.textContent = dict[key];
+            }
+        }
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[key]) {
+            el.placeholder = dict[key];
+        }
+    });
+
+    const currentEngine = engineSelect ? engineSelect.value : 'bing';
+    const placeholderKey = `search_placeholder_${currentEngine}`;
+    if (dict[placeholderKey] && searchInput) {
+        searchInput.placeholder = dict[placeholderKey];
+    }
+
+    // 更新文档标题
+    if (dict['title']) {
+        document.title = dict['title'];
+    }
+
+    // 英文环境下禁止使用像素字体
+    if (fontSelect) {
+        const minecraftOption = fontSelect.querySelector('option[value="minecraft"]');
+        if (minecraftOption) {
+            if (lang === 'en') {
+                minecraftOption.disabled = true;
+                if (fontSelect.value === 'minecraft') {
+                    fontSelect.value = 'harmonyos';
+                    applyGlobalFont('harmonyos');
+                    saveSettings();
+                }
+            } else {
+                minecraftOption.disabled = false;
+            }
+        }
     }
 }
 
@@ -126,6 +195,15 @@ async function loadSettings() {
         } catch (e) {
             console.error("Failed to read from chrome.storage", e);
         }
+    }
+
+    // 加载翻译数据
+    await loadTranslations();
+
+    // 应用语言设置
+    if (languageSelect) {
+        languageSelect.value = settings.language;
+        applyLanguage(settings.language);
     }
 
     engineSelect.value = settings.engine;
@@ -157,25 +235,22 @@ async function loadSettings() {
     poetryToggle.checked = settings.showPoetry;
     applyPoetry(settings.showPoetry);
 
-    // 新增：加载信任环状态
+    // 加载信任环状态
     if (vilinkoConnectToggle) {
         vilinkoConnectToggle.checked = settings.vilinkoConnect;
     }
 
-    // 新增：加载便签按钮显示状态
+    // 加载便签按钮显示状态
     if (noteBtnToggle) {
         noteBtnToggle.checked = settings.showNoteBtn;
     }
 
-    // 新增：加载便签应用选择
     if (noteAppSelect) {
         noteAppSelect.value = settings.noteApp;
     }
 
-    // 新增：根据信任环状态更新相关控件的禁用状态
     updateTrustRingDependentControls(vilinkoConnectToggle.checked);
 
-    // 新增：应用便签按钮可见性
     applyNoteBtnVisibility(settings.showNoteBtn);
 
     if (settings.showWeather) {
@@ -187,7 +262,19 @@ function applyEngine(engine) {
     const config = searchEngines[engine];
     searchForm.action = config.action;
     searchInput.name = config.name;
-    searchInput.placeholder = config.placeholder;
+    
+    const currentLang = languageSelect ? languageSelect.value : 'zh-CN';
+    const dict = translations[currentLang];
+    if (dict) {
+        const placeholderKey = `search_placeholder_${engine}`;
+        if (dict[placeholderKey]) {
+            searchInput.placeholder = dict[placeholderKey];
+        } else {
+            searchInput.placeholder = config.placeholder;
+        }
+    } else {
+        searchInput.placeholder = config.placeholder;
+    }
 }
 
 function applyGlobalFont(fontType) {
@@ -195,6 +282,7 @@ function applyGlobalFont(fontType) {
     const minecraftFontStack = "'MinecraftFont', 'Google Sans', 'Product Sans', 'Helvetica Neue', Arial, sans-serif";
     const harmonyosFontStack = "'HarmonyOS Sans', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif";
     const misansFontStack = "'MiSans', 'MiSans Latin', 'HarmonyOS Sans', 'Microsoft YaHei', sans-serif";
+    const tencentFontStack = "'Tencent Sans', 'TencentFont', 'HarmonyOS Sans', 'Microsoft YaHei', sans-serif";
 
     let targetFontStack = minecraftFontStack;
 
@@ -203,7 +291,7 @@ function applyGlobalFont(fontType) {
         style.textContent = `
             @font-face {
                 font-family: 'HarmonyOS Sans';
-                src: url('./source/harmonyos.ttf') format('truetype');
+                src: url('./source/ttf/harmonyos.ttf') format('truetype');
                 font-display: swap;
             }
         `;
@@ -214,12 +302,23 @@ function applyGlobalFont(fontType) {
         style.textContent = `
             @font-face {
                 font-family: 'MiSans';
-                src: url('./source/misans.ttf') format('truetype');
+                src: url('./source/ttf/misans.ttf') format('truetype');
                 font-display: swap;
             }
         `;
         document.head.appendChild(style);
         targetFontStack = misansFontStack;
+    } else if (fontType === 'Tencent') {
+        const style = document.createElement('style');
+        style.textContent = `
+            @font-face {
+                font-family: 'Tencent Sans';
+                src: url('./source/ttf/Tencent.ttf') format('truetype');
+                font-display: swap;
+            }
+        `;
+        document.head.appendChild(style);
+        targetFontStack = tencentFontStack;
     } else {
         targetFontStack = minecraftFontStack;
     }
@@ -262,29 +361,23 @@ function applyPoetry(enabled) {
     }
 }
 
-// 添加双击诗词搜索功能
+// 双击诗词搜索功能
 if (poetryContent) {
     poetryContent.addEventListener('dblclick', (e) => {
-        // 阻止事件冒泡，防止触发其他可能的双击行为
         e.stopPropagation();
         
-        // 获取诗词内容，去除可能的空白字符
         const content = poetryContent.innerText.trim();
         if (!content) return;
 
-        // 获取当前设置的搜索引擎
         const currentEngine = engineSelect ? engineSelect.value : 'bing';
         const engineConfig = searchEngines[currentEngine];
         
         if (engineConfig) {
-            // 构建搜索URL
             const searchUrl = `${engineConfig.action}?${engineConfig.name}=${encodeURIComponent(content)}`;
-            // 在新标签页打开搜索结果
             window.open(searchUrl, '_blank');
         }
     });
     
-    // 添加提示样式，让用户知道可以双击
     poetryContent.style.cursor = 'pointer';
     poetryContent.title = '双击搜索诗词';
 }
@@ -417,9 +510,21 @@ engineSelect.addEventListener('change', (e) => {
 });
 
 fontSelect.addEventListener('change', (e) => {
+    if (e.target.value === 'minecraft' && languageSelect && languageSelect.value === 'en') {
+        e.target.value = 'harmonyos'; 
+        alert('Pixel font is not supported in English mode.');
+    }
     applyGlobalFont(e.target.value);
     saveSettings();
 });
+
+// 监听语言选择变化
+if (languageSelect) {
+    languageSelect.addEventListener('change', (e) => {
+        applyLanguage(e.target.value);
+        saveSettings();
+    });
+}
 
 timeFormatToggle.addEventListener('change', (e) => {
     is24Hour = e.target.checked;
@@ -566,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        let customMenuResult = tryCalculate(query) || tryTimeCalculate(query);
+        let customMenuResult = tryCalculate(query) || tryTimeCalculate(query) || tryTranslation(query);
         fetchBaiduSug(query, customMenuResult);
     }, 150)); 
 
@@ -621,6 +726,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return { type: 'time', text: diffDays.toString(), value: diffDays.toString() };
     }
 
+    function tryTranslation(str) {
+        // 检测是否包含英文字符
+        if (/[a-zA-Z]/.test(str)) {
+            const encodedText = encodeURIComponent(str);
+            const translationUrl = `https://www.bing.com/translator?from=auto&to=zh-Hans&text=${encodedText}`;
+            return { type: 'translate', text: '快捷翻译', value: translationUrl };
+        }
+        return null;
+    }
+
     function fetchBaiduSug(text, customMenuResult) {
         const url = `https://suggestion.baidu.com/su?wd=${encodeURIComponent(text)}&p=3&prod=pc&cb=`;
         
@@ -669,6 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (customMenuResult.type === 'time') {
                 customItem.style.fontWeight = 'bold';
                 customItem.style.color = '#5279FB'; 
+            } else if (customMenuResult.type === 'translate') {
+                customItem.style.fontWeight = 'bold';
+                customItem.style.color = '#5279FB';
             }
             
             if (searchInput.classList.contains('custom-font')) {
@@ -679,9 +797,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             customItem.textContent = customMenuResult.text;
             
+            // 将事件处理完全移至 JavaScript 中，避免使用 HTML 属性
             customItem.addEventListener('click', () => {
-                searchInput.value = customMenuResult.value;
-                hideSugMenu();
+                if (customMenuResult.type === 'translate') {
+                    window.open(customMenuResult.value, '_blank');
+                    hideSugMenu();
+                } else {
+                    searchInput.value = customMenuResult.value;
+                    hideSugMenu();
+                }
             });
             
             sugMenu.appendChild(customItem);
@@ -789,7 +913,7 @@ function applyNoteBtnVisibility(enabled) {
     }
 }
 
-// 新增：更新依赖信任环的控件状态
+// 更新依赖信任环的控件状态
 function updateTrustRingDependentControls(isTrustRingEnabled) {
     const isDisabled = !isTrustRingEnabled;
     

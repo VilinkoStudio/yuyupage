@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="jinrishici-token" content="lrhmAMbXejmYilNvM7ZYNXmpUN7wkwbS">
-    <title>YuyuPage</title>
+    <title data-i18n="title">YuyuPage</title>
 
     <link rel="stylesheet" href="source/font-awesome/css/all.min.css">
 
@@ -39,7 +39,7 @@
 
         @font-face {
             font-family: 'MinecraftFont';
-            src: url('./source/minecraftfont.woff') format('woff');
+            src: url('./source/ttf/minecraftfont.woff') format('woff');
             font-display: swap;
         }
 
@@ -576,12 +576,12 @@
     </div>
 
     <div class="poetry-box" id="poetryBox">
-        <span id="poetry-content">正在加载今日诗词....</span>
+        <span id="poetry-content" data-i18n="poetry_loading">正在加载今日诗词....</span>
         <span id="poetry-author"></span>
     </div>
 
     <footer id="pageFooter">
-        Copyright &copy; <span id="footerYear">2026</span> Vilinko. All Rights Reserved.
+        <span id="footerText" data-i18n="footer_copyright">Copyright &copy; <span id="footerYear">2026</span> Vilinko. All Rights Reserved.</span>
     </footer>
 
     <div class="modal-overlay" id="modalOverlay">
@@ -589,7 +589,7 @@
         <div class="modal-container">
 
             <div class="modal-header">
-                <div class="modal-title">个性化设置</div>
+                <div class="modal-title" data-i18n="settings_title">个性化设置</div>
 
                 <button class="modal-close" id="closeSettingsBtn">
                     <i class="fa-solid fa-xmark"></i>
@@ -599,7 +599,18 @@
             <div class="modal-body">
 
                 <div class="setting-item">
-                    <label class="setting-label">搜索引擎</label>
+                    <label class="setting-label" data-i18n="label_language">语言 / Language</label>
+
+                    <select class="setting-select" id="languageSelect">
+                        <option value="zh-CN">简体中文</option>
+                        <option value="zh-TW">繁體中文 (中國台灣)</option>
+                        <option value="zh-HK">繁體中文 (中國港澳)</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label" data-i18n="label_engine">搜索引擎</label>
 
                     <select class="setting-select" id="engineSelect">
                         <option value="bing">Bing (必应)</option>
@@ -612,18 +623,19 @@
                 </div>
 
                 <div class="setting-item">
-                    <label class="setting-label">全局字体</label>
+                    <label class="setting-label" data-i18n="label_font">全局字体</label>
 
                     <select class="setting-select" id="fontSelect">
-                        <option value="minecraft">像素字体 (Minecraft)</option>
-                        <option value="harmonyos">鸿蒙黑体 (HarmonyOS)</option>
-                        <option value="misans">小米字体 (MiSans)</option>
+                        <option value="minecraft" data-i18n="font_minecraft">像素字体 (Minecraft)</option>
+                        <option value="harmonyos" data-i18n="font_harmonyos">鸿蒙黑体 (HarmonyOS)</option>
+                        <option value="misans" data-i18n="font_misans">小米字体 (MiSans)</option>
+                        <option value="Tencent" data-i18n="font_tencent">腾讯字体 (Tencent)</option>
                     </select>
                 </div>
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">显示天气</span>
+                        <span class="setting-label" data-i18n="label_weather">显示天气</span>
 
                         <input type="checkbox" class="switch-input" id="weatherToggle" checked>
 
@@ -632,29 +644,29 @@
                 </div>
 
                 <div class="setting-item" id="weatherUnitGroup">
-                    <label class="setting-label">天气单位</label>
+                    <label class="setting-label" data-i18n="label_weather_unit">天气单位</label>
 
                     <select class="setting-select" id="weatherUnitSelect">
-                        <option value="metric">摄氏 ℃</option>
-                        <option value="imperial">华氏 ℉</option>
+                        <option value="metric" data-i18n="unit_metric">摄氏 ℃</option>
+                        <option value="imperial" data-i18n="unit_imperial">华氏 ℉</option>
                     </select>
                 </div>
 
                 <div class="setting-item" id="weatherLocationGroup">
-                    <label class="setting-label">天气位置</label>
+                    <label class="setting-label" data-i18n="label_weather_location">天气位置</label>
 
-                    <input type="text" class="setting-input" id="weatherLocationInput" placeholder="Beijing">
+                    <input type="text" class="setting-input" id="weatherLocationInput" data-i18n-placeholder="placeholder_location" placeholder="Beijing">
                 </div>
 
                 <div class="setting-item" id="weatherApiKeyGroup">
-                    <label class="setting-label">OpenWeather API Key</label>
+                    <label class="setting-label" data-i18n="label_api_key">OpenWeather API Key</label>
 
-                    <input type="text" class="setting-input" id="weatherApiKeyInput" placeholder="留空则使用默认 Key">
+                    <input type="text" class="setting-input" id="weatherApiKeyInput" data-i18n-placeholder="placeholder_api_key" placeholder="留空则使用默认 Key">
                 </div>
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">显示今日诗词</span>
+                        <span class="setting-label" data-i18n="label_poetry">显示今日诗词</span>
 
                         <input type="checkbox" class="switch-input" id="poetryToggle" checked>
 
@@ -664,7 +676,7 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">Vilinko 信任环</span>
+                        <span class="setting-label" data-i18n="label_trust_ring">Vilinko 信任环</span>
 
                         <input type="checkbox" class="switch-input" id="vilinkoConnect" disabled>
 
@@ -674,7 +686,7 @@
 
                 <div class="setting-item" id="noteBtnGroup">
                     <label class="switch-label">
-                        <span class="setting-label">主页显示便签按钮</span>
+                        <span class="setting-label" data-i18n="label_note_btn">主页显示便签按钮</span>
 
                         <input type="checkbox" class="switch-input" id="noteBtnToggle" checked>
 
@@ -683,7 +695,7 @@
                 </div>
 
                 <div class="setting-item" id="noteAppGroup">
-                    <label class="setting-label">选择便签信任应用</label>
+                    <label class="setting-label" data-i18n="label_note_app">选择便签信任应用</label>
 
                     <select class="setting-select" id="noteAppSelect">
                         <option value="LightFrame">LightFrame</option>
@@ -694,8 +706,8 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">显示 Doodle</span>
-                        <span class="setting-label" style="opacity: 0.6;">不支持</span>
+                        <span class="setting-label" data-i18n="label_doodle">显示 Doodle</span>
+                        <span class="setting-label" style="opacity: 0.6;" data-i18n="label_doodle_unsupported">不支持</span>
 
                         <!-- <input type="checkbox" class="switch-input" id="doodleToggle" disabled>
 
@@ -705,7 +717,7 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">使用 24 小时制</span>
+                        <span class="setting-label" data-i18n="label_24h">使用 24 小时制</span>
 
                         <input type="checkbox" class="switch-input" id="timeFormatToggle" checked>
 
@@ -715,7 +727,7 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">时间分隔符闪烁</span>
+                        <span class="setting-label" data-i18n="label_blink">时间分隔符闪烁</span>
 
                         <input type="checkbox" class="switch-input" id="blinkToggle">
 
@@ -725,7 +737,7 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">搜索框使用像素字体</span>
+                        <span class="setting-label" data-i18n="label_custom_font">搜索框使用像素字体</span>
 
                         <input type="checkbox" class="switch-input" id="fontToggle">
 
@@ -735,7 +747,7 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label">显示页脚版权信息</span>
+                        <span class="setting-label" data-i18n="label_footer">显示页脚版权信息</span>
 
                         <input type="checkbox" class="switch-input" id="footerToggle" checked>
 
@@ -744,8 +756,8 @@
                 </div>
 
                 <div style="text-align: left; margin-top: 24px; opacity: 0.5; font-size: 0.8rem; display: flex; align-items: center; gap: 12px;">
-                    <span>Version 1.0.4 Build4 20260616</span>
-                    <a href="https://yuyupage.vilinko.com/update/index.html?ver=104" target="_blank" style="color: var(--text-color); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; cursor: pointer;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">检查更新</a>
+                    <span>Version 1.0.5 Build5 20260622</span>
+                    <a href="https://yuyupage.vilinko.com/update/index.html?ver=105" target="_blank" style="color: var(--text-color); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; cursor: pointer;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" data-i18n="check_update">检查更新</a>
                 </div>
 
             </div>
@@ -756,12 +768,12 @@
 
     <div class="trust-modal-overlay" id="trustModalOverlay">
         <div class="trust-modal-card">
-            <div class="trust-modal-title">信任环未启动</div>
-            <div class="trust-modal-body">
+            <div class="trust-modal-title" data-i18n="trust_modal_title">信任环未启动</div>
+            <div class="trust-modal-body" data-i18n="trust_modal_body">
                 请先在设置中打开信任环功能，然后重新尝试启动便签。
             </div>
             <div class="trust-modal-action">
-                <button class="trust-modal-btn" id="closeTrustModalBtn">确定</button>
+                <button class="trust-modal-btn" id="closeTrustModalBtn" data-i18n="trust_modal_btn">确定</button>
             </div>
         </div>
     </div>
