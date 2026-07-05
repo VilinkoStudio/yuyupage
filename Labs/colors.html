@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YuyuPageLabs - Colors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --md-sys-color-primary: #5279FB;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #dbe1ff;
+            --md-sys-color-on-primary-container: #001650;
+            --md-sys-color-surface-variant: #e2e2f0;
+            --md-sys-color-on-surface-variant: #44468f;
+            --md-sys-color-background: #fbfbff;
+            --md-sys-color-on-background: #1a1b25;
+            --md-sys-color-outline: #757699;
+            
+            --m3-transition-duration: 0.6s;
+            --m3-transition-timing: cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: var(--md-sys-color-background) !important;
+            color: var(--md-sys-color-on-background) !important;
+            transition: background-color var(--m3-transition-duration) var(--m3-transition-timing),
+                        color var(--m3-transition-duration) var(--m3-transition-timing);
+        }
+
+        .m3-transition {
+            transition: background-color var(--m3-transition-duration) var(--m3-transition-timing),
+                        color var(--m3-transition-duration) var(--m3-transition-timing),
+                        border-color var(--m3-transition-duration) var(--m3-transition-timing),
+                        box-shadow var(--m3-transition-duration) var(--m3-transition-timing);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-6 md:p-12">
+
+    <header class="max-w-4xl w-full mx-auto mb-12">
+        <h1 class="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <span class="m3-transition" style="color: var(--md-sys-color-primary)">Colors</span>
+        </h1>
+
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start flex-grow">
+        <section class="glass-panel p-6 rounded-[28px] m3-transition" style="background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant);">
+            <h3 class="text-base font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-image"></i> 上传源图片
+            </h3>
+
+            <div class="border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer hover:bg-black/5 transition duration-200 relative group m3-transition" style="border-color: var(--md-sys-color-outline)">
+                <input type="file" id="imageInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="flex flex-col items-center gap-3">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl group-hover:scale-110 transition duration-300 m3-transition" style="color: var(--md-sys-color-primary)"></i>
+                    <span class="text-sm font-medium">点击或将图片拖拽至此</span>
+                    <span class="text-xs opacity-60">支持 PNG, JPG, WEBP 图像</span>
+                </div>
+            </div>
+        </section>
+        <section class="glass-panel p-6 rounded-[28px] flex flex-col justify-between min-h-[260px] m3-transition" style="background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant);">
+            <div>
+                <h3 class="text-base font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> M3 动态派生色盘
+                </h3>
+                <div id="paletteGrid" class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="col-span-2 text-center py-10 opacity-60 text-sm">
+                        <i class="fa-solid fa-palette text-2xl mb-2 block"></i>
+                        等待上传图片以激活动态推导
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-black/5 p-4 rounded-2xl flex items-center gap-4 m3-transition">
+                <div id="imgPreviewWrapper" class="w-14 h-14 bg-black/10 rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                    <i id="placeholderIcon" class="fa-solid fa-photo-film opacity-40 text-lg"></i>
+                    <img id="activeSourceImg" class="w-full h-full object-cover hidden" alt="当前提取源">
+                </div>
+                <div class="overflow-hidden">
+                    <h4 class="text-[10px] font-bold uppercase opacity-50 tracking-wider">当前状态</h4>
+                    <p id="extractionStatus" class="text-sm font-semibold truncate max-w-[240px]">未载入图片</p>
+                    <span id="seedHexLabel" class="text-[11px] font-mono bg-black/10 px-2 py-0.5 rounded-md mt-1 inline-block hidden">Seed: -</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-4xl w-full mx-auto text-center mt-12 text-[11px] opacity-40 m3-transition" style="color: var(--md-sys-color-on-background)">
+        Copyright © 2026 Vilinko Studio. All rights reserved.
+    </footer>
+
+    <script type="module">
+        import Vibrant from 'https://esm.sh/node-vibrant@3.1.6';
+        import { colord } from 'https://esm.sh/colord@2.9.3';
+        import { argbFromHex, themeFromSourceColor } from 'https://esm.sh/@material/material-color-utilities@0.2.7';
+
+        const imageInput = document.getElementById('imageInput');
+        const paletteGrid = document.getElementById('paletteGrid');
+        const extractionStatus = document.getElementById('extractionStatus');
+        const activeSourceImg = document.getElementById('activeSourceImg');
+        const placeholderIcon = document.getElementById('placeholderIcon');
+        const seedHexLabel = document.getElementById('seedHexLabel');
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imgDataUrl = event.target.result;
+                extractTheme(imgDataUrl, file.name);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function extractTheme(imgUrl, fileName) {
+            try {
+                placeholderIcon.classList.add('hidden');
+                activeSourceImg.classList.remove('hidden');
+                activeSourceImg.src = imgUrl;
+                extractionStatus.innerText = "正在分析色彩...";
+
+                const img = new Image();
+                img.src = imgUrl;
+                img.onload = async () => {
+                    try {
+                        const palette = await Vibrant.from(img).getPalette();
+                        const seedHex = palette.Vibrant?.hex || palette.Muted?.hex || '#5279FB';
+                        
+                        seedHexLabel.classList.remove('hidden');
+                        seedHexLabel.innerText = `Seed: ${seedHex.toUpperCase()}`;
+                        extractionStatus.innerText = fileName;
+
+                        const argbSeed = argbFromHex(seedHex);
+                        const m3Theme = themeFromSourceColor(argbSeed);
+                        updatePaletteGrid(seedHex);
+
+                    } catch (err) {
+                        console.error(err);
+                        extractionStatus.innerText = "提取色彩失败";
+                    }
+                };
+            } catch (err) {
+                console.error(err);
+                extractionStatus.innerText = "文件读取失败";
+            }
+        }
+
+        function updatePaletteGrid(seedHex) {
+            const primary = seedHex;
+            const primaryContainer = colord(seedHex).lighten(0.18).desaturate(0.05).toHex();
+            const surface = colord(seedHex).lighten(0.38).desaturate(0.25).toHex();
+            const textOnSurface = colord(seedHex).darken(0.45).toHex();
+
+            paletteGrid.innerHTML = `
+                <div class="p-3 rounded-2xl flex flex-col justify-between h-16 shadow-sm transition-all duration-500" style="background-color: ${primary}; color: ${colord(primary).isLight() ? '#111' : '#fff'}">
+                    <span class="text-[10px] font-bold uppercase opacity-80">Primary (主色)</span>
+                    <span class="text-xs font-mono font-semibold">${primary.toUpperCase()}</span>
+                </div>
+                <div class="p-3 rounded-2xl flex flex-col justify-between h-16 shadow-sm transition-all duration-500" style="background-color: ${primaryContainer}; color: ${colord(primaryContainer).isLight() ? '#111' : '#fff'}">
+                    <span class="text-[10px] font-bold uppercase opacity-80">Container (容器色)</span>
+                    <span class="text-xs font-mono font-semibold">${primaryContainer.toUpperCase()}</span>
+                </div>
+                <div class="p-3 rounded-2xl flex flex-col justify-between h-16 shadow-sm col-span-2 transition-all duration-500" style="background-color: ${surface}; color: ${textOnSurface}">
+                    <span class="text-[10px] font-bold uppercase opacity-80">Surface Background (表面色)</span>
+                    <span class="text-xs font-mono font-semibold">${surface.toUpperCase()}</span>
+                </div>
+            `;
+        }
+
+        function applyThemeVariables(themeObj) {
+            return;
+        }
+    </script>
+</body>
+</html>
