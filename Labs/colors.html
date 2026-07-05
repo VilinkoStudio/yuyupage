@@ -167,15 +167,15 @@
 
             paletteGrid.innerHTML = `
                 <div class="p-3 rounded-2xl flex flex-col justify-between h-16 shadow-sm transition-all duration-500" style="background-color: ${primary}; color: ${colord(primary).isLight() ? '#111' : '#fff'}">
-                    <span class="text-[10px] font-bold uppercase opacity-80">Primary (主色)</span>
+                    <span class="text-[10px] font-bold uppercase opacity-80">Primary</span>
                     <span class="text-xs font-mono font-semibold">${primary.toUpperCase()}</span>
                 </div>
                 <div class="p-3 rounded-2xl flex flex-col justify-between h-16 shadow-sm transition-all duration-500" style="background-color: ${primaryContainer}; color: ${colord(primaryContainer).isLight() ? '#111' : '#fff'}">
-                    <span class="text-[10px] font-bold uppercase opacity-80">Container (容器色)</span>
+                    <span class="text-[10px] font-bold uppercase opacity-80">Container</span>
                     <span class="text-xs font-mono font-semibold">${primaryContainer.toUpperCase()}</span>
                 </div>
                 <div class="p-3 rounded-2xl flex flex-col justify-between h-16 shadow-sm col-span-2 transition-all duration-500" style="background-color: ${surface}; color: ${textOnSurface}">
-                    <span class="text-[10px] font-bold uppercase opacity-80">Surface Background (表面色)</span>
+                    <span class="text-[10px] font-bold uppercase opacity-80">Surface Background</span>
                     <span class="text-xs font-mono font-semibold">${surface.toUpperCase()}</span>
                 </div>
             `;
