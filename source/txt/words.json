@@ -32,6 +32,8 @@
     "label_blink": "时间分隔符闪烁",
     "label_custom_font": "搜索框使用像素字体",
     "label_footer": "显示页脚版权信息",
+    "label_sug_urls": "搜索时提供联想网址",
+    "label_bing_wallpaper": "使用 Bing 每日壁纸",
     "footer_copyright": "Copyright © {year} Vilinko. All Rights Reserved.",
     "check_update": "检查更新",
     "label_language": "语言 / Language",
@@ -40,9 +42,7 @@
     "lang_en": "English",
     "trust_modal_title": "信任环未启动",
     "trust_modal_body": "请先在设置中打开信任环功能，然后重新尝试启动便签。",
-    "trust_modal_btn": "确定",
-    "poetry_loading": "正在加载今日诗词....",
-    "poetry_default": "海内存知己，天涯若比邻。"
+    "trust_modal_btn": "确定"
   },
   "zh-TW": {
     "title": "YuyuPage",
@@ -77,6 +77,8 @@
     "label_blink": "時間分隔符閃爍",
     "label_custom_font": "搜尋框使用像素字型",
     "label_footer": "顯示頁尾版權資訊",
+    "label_sug_urls": "搜尋時提供聯想網址",
+    "label_bing_wallpaper": "使用 Bing 每日壁紙",
     "footer_copyright": "Copyright © {year} Vilinko. All Rights Reserved.",
     "check_update": "檢查更新",
     "label_language": "語言 / Language",
@@ -85,9 +87,7 @@
     "lang_en": "English",
     "trust_modal_title": "信任環未啟動",
     "trust_modal_body": "請先在設定中開啟信任環功能，然後重新嘗試啟動便籤。",
-    "trust_modal_btn": "確定",
-    "poetry_loading": "正在載入今日詩詞....",
-    "poetry_default": "海內存知己，天涯若比鄰。"
+    "trust_modal_btn": "確定"
   },
   "zh-HK": {
     "title": "YuyuPage",
@@ -122,6 +122,8 @@
     "label_blink": "時間分隔符閃爍",
     "label_custom_font": "搜尋框使用像素字型",
     "label_footer": "顯示頁尾版權資訊",
+    "label_sug_urls": "搜尋時提供聯想網址",
+    "label_bing_wallpaper": "使用 Bing 每日壁紙",
     "footer_copyright": "Copyright © {year} Vilinko. All Rights Reserved.",
     "check_update": "檢查更新",
     "label_language": "語言 / Language",
@@ -131,9 +133,7 @@
     "lang_en": "English",
     "trust_modal_title": "信任環未啟動",
     "trust_modal_body": "請先在設定中開啟信任環功能，然後重新嘗試啟動便籤。",
-    "trust_modal_btn": "確定",
-    "poetry_loading": "正在載入今日詩詞....",
-    "poetry_default": "海內存知己，天涯若比鄰。"
+    "trust_modal_btn": "確定"
   },
   "en": {
     "title": "YuyuPage",
@@ -168,6 +168,8 @@
     "label_blink": "Blink Time Separator",
     "label_custom_font": "Use Pixel Font in Search Box",
     "label_footer": "Show Footer Copyright",
+    "label_sug_urls": "Show URL Suggestions in Search",
+    "label_bing_wallpaper": "Use Bing Daily Wallpaper",
     "footer_copyright": "Copyright © {year} Vilinko. All Rights Reserved.",
     "check_update": "Check for Updates",
     "label_language": "Language / Language",
@@ -177,8 +179,6 @@
     "lang_en": "English",
     "trust_modal_title": "Trust Ring Not Active",
     "trust_modal_body": "Please enable the Trust Ring in settings and try opening notes again.",
-    "trust_modal_btn": "OK",
-    "poetry_loading": "Loading daily poetry...",
-    "poetry_default": "A bosom friend afar brings a distant land near."
+    "trust_modal_btn": "OK"
   }
 }

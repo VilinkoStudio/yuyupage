@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YuyuPage",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "一个简洁的起始页。",
   "author": "Copyright (c) 2026 Vilinko. All rights reserved.",
   "icons": {
@@ -12,10 +12,14 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
+  "background": {
+    "service_worker": "source/js/background.js"
+  },
   "host_permissions": [
     "https://api.openweathermap.org/*",
     "https://v2.jinrishici.com/*",
-    "https://suggestion.baidu.com/*"
+    "https://suggestion.baidu.com/*",
+    "https://bing.shangzhenyang.com/*"
   ],
   "permissions": [
     "storage"
