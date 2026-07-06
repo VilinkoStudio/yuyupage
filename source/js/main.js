@@ -1100,6 +1100,32 @@ function applyBingWallpaper(enabled) {
     const openSettingsBtn = document.getElementById('openSettingsBtn');
     const sugMenu = document.getElementById('sugMenu');
 
+    // 定义一个内部函数来更新联想菜单样式，以便复用和响应主题变化
+    function updateSugMenuStyle() {
+        if (!sugMenu) return;
+
+        // 检测系统是否为深色模式
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (isDarkMode) {
+            // 深色模式：深色半透明背景，白色文字
+            sugMenu.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+            sugMenu.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            const items = sugMenu.querySelectorAll('.sug-item');
+            items.forEach(item => item.style.color = '#fff');
+        } else {
+            // 浅色模式：浅色半透明背景，深色文字
+            sugMenu.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+            sugMenu.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+            const items = sugMenu.querySelectorAll('.sug-item');
+            items.forEach(item => item.style.color = '#333');
+        }
+        
+        // 共同的高斯模糊效果
+        sugMenu.style.backdropFilter = 'blur(15px)';
+        sugMenu.style.WebkitBackdropFilter = 'blur(15px)';
+    }
+
     if (enabled) {
         // 显示背景层并获取壁纸
         bgElement.style.display = 'block';
@@ -1233,15 +1259,14 @@ function applyBingWallpaper(enabled) {
             openSettingsBtn.style.color = '#fff';
         }
 
-        // 联想词菜单：高斯模糊背景并关闭深浅变换
+        // 联想词菜单：应用动态主题样式
         if (sugMenu) {
-            sugMenu.style.backgroundColor = 'rgba(30, 30, 30, 0.6)'; // 深色半透明背景
-            sugMenu.style.backdropFilter = 'blur(15px)';
-            sugMenu.style.WebkitBackdropFilter = 'blur(15px)';
-            sugMenu.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            // 强制子元素文字颜色为白色
-            const items = sugMenu.querySelectorAll('.sug-item');
-            items.forEach(item => item.style.color = '#fff');
+            updateSugMenuStyle();
+            
+            // 监听系统主题变化，实时更新菜单样式
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateSugMenuStyle);
+            }
         }
 
     } else {
