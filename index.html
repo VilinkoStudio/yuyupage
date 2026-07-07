@@ -102,7 +102,7 @@
             opacity: 0.88;
             font-size: 1rem;
             /* 新增：壁纸模式下的模糊背景 */
-            transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s;
+            transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s, opacity 0.3s, transform 0.3s;
         }
 
         .weather-widget.hidden {
@@ -116,7 +116,8 @@
             font-size: 1.35rem;
             cursor: pointer;
             opacity: 0.7;
-            transition: 0.3s;
+            /* 修改：添加过渡属性，支持背景、模糊、圆角等变化 */
+            transition: opacity 0.3s, transform 0.3s, background-color 0.3s, backdrop-filter 0.3s, border-radius 0.3s, width 0.3s, height 0.3s;
         }
 
         .settings-btn:hover {
@@ -131,7 +132,8 @@
             font-size: 1.35rem;
             cursor: pointer;
             opacity: 0.7;
-            transition: 0.3s;
+            /* 修改：添加过渡属性，支持背景、模糊、圆角等变化 */
+            transition: opacity 0.3s, transform 0.3s, background-color 0.3s, backdrop-filter 0.3s, border-radius 0.3s, width 0.3s, height 0.3s;
         }
 
         .docs-text:hover {
@@ -155,8 +157,8 @@
             display: flex;
             align-items: baseline;
             letter-spacing: -2px;
-            /* 新增：壁纸模式下的模糊背景 */
-            transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s;
+            /* 修改：完善过渡属性 */
+            transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s, text-shadow 0.3s, color 0.3s;
         }
 
         .time-period {
@@ -244,8 +246,7 @@
             font-size: 0.85rem;
             opacity: 0.72;
             padding: 0 20px;
-            transition: 0.3s;
-            /* 新增：壁纸模式下的模糊背景 */
+            /* 修改：完善过渡属性 */
             transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s, opacity 0.3s, visibility 0.3s;
         }
 
@@ -269,8 +270,8 @@
             opacity: 0.6;
             text-align: center;
             width: 100%;
-            /* 新增：壁纸模式下的模糊背景 */
-            transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s;
+            /* 修改：完善过渡属性 */
+            transition: background-color 0.3s, backdrop-filter 0.3s, padding 0.3s, border-radius 0.3s, opacity 0.3s, visibility 0.3s, left 0.3s, transform 0.3s, width 0.3s;
         }
 
         .modal-overlay {

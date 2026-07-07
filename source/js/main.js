@@ -1247,7 +1247,12 @@ function applyBingWallpaper(enabled) {
             allTextBtn.style.backdropFilter = 'blur(10px)';
             allTextBtn.style.WebkitBackdropFilter = 'blur(10px)';
             allTextBtn.style.borderRadius = '50%';
-            allTextBtn.style.padding = '8px';
+            allTextBtn.style.padding = '0'; // 移除 padding，改用固定宽高
+            allTextBtn.style.width = '40px'; // 设置固定宽度
+            allTextBtn.style.height = '40px'; // 设置固定高度
+            allTextBtn.style.display = 'flex'; // 使用 flex 居中图标
+            allTextBtn.style.justifyContent = 'center';
+            allTextBtn.style.alignItems = 'center';
             allTextBtn.style.color = '#fff';
         }
         if (openSettingsBtn) {
@@ -1255,7 +1260,12 @@ function applyBingWallpaper(enabled) {
             openSettingsBtn.style.backdropFilter = 'blur(10px)';
             openSettingsBtn.style.WebkitBackdropFilter = 'blur(10px)';
             openSettingsBtn.style.borderRadius = '50%';
-            openSettingsBtn.style.padding = '8px';
+            openSettingsBtn.style.padding = '0'; // 移除 padding，改用固定宽高
+            openSettingsBtn.style.width = '40px'; // 设置固定宽度
+            openSettingsBtn.style.height = '40px'; // 设置固定高度
+            openSettingsBtn.style.display = 'flex'; // 使用 flex 居中图标
+            openSettingsBtn.style.justifyContent = 'center';
+            openSettingsBtn.style.alignItems = 'center';
             openSettingsBtn.style.color = '#fff';
         }
 
@@ -1303,7 +1313,14 @@ function applyBingWallpaper(enabled) {
             // 修复：恢复页脚开关控制的状态
             applyFooter(footerToggle ? footerToggle.checked : true);
         }
-        if (weatherWidget) weatherWidget.style.cssText = '';
+        if (weatherWidget) {
+            weatherWidget.style.cssText = '';
+            // 修复：清除子元素（图标和文字）在壁纸模式下添加的内联样式，以恢复默认 CSS 样式
+            const icon = weatherWidget.querySelector('i');
+            const text = weatherWidget.querySelector('span');
+            if (icon) icon.style.cssText = '';
+            if (text) text.style.cssText = '';
+        }
         if (allTextBtn) allTextBtn.style.cssText = '';
         if (openSettingsBtn) openSettingsBtn.style.cssText = '';
         if (sugMenu) {
