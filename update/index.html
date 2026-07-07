@@ -126,6 +126,14 @@
             color: var(--text-secondary);
             font-size: 1rem;
         }
+
+        .warning-text {
+            color: #ff9800; /* 橙色 */
+            font-size: 0.9rem;
+            margin-top: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -141,6 +149,7 @@
             <h1>需要更新</h1>
             <p class="message" style="text-align: center;">发现新版本可用，请下载并安装更新。</p> <a href="#" id="download-link"
                 class="btn-download" target="_blank">立即下载</a>
+            <div id="warning-container" class="warning-text hidden"></div>
         </div>
         <div id="param-error-view" class="hidden">
             <h1>参数错误</h1>
@@ -203,6 +212,19 @@
                 } else {
                     const downloadLink = document.getElementById('download-link');
                     downloadLink.href = `https://raw.githubusercontent.com/VilinkoStudio/yuyupage/refs/heads/crx/${latestVer}.zip`;
+                    
+                    // 处理警告信息
+                    const warningContainer = document.getElementById('warning-container');
+                    const warningInfoVer = versionData.WarningInfoVer;
+                    const warningInfo = versionData.WarningInfo;
+
+                    if (warningInfoVer === 1 && warningInfo) {
+                        warningContainer.textContent = warningInfo;
+                        warningContainer.classList.remove('hidden');
+                    } else {
+                        warningContainer.classList.add('hidden');
+                    }
+
                     updateRequiredEl.classList.remove('hidden');
                 }
             } catch (error) {

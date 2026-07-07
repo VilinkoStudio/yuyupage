@@ -1,3 +1,5 @@
 {
-  "latestVersion": "105"
+  "latestVersion": "106",
+  "WarningInfoVer": 1,
+  "WarningInfo": "新版本包含实验功能"
 }
