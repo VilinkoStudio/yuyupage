@@ -37,12 +37,17 @@ html.dark {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    /* 全局清除移动端点击高亮 */
+    -webkit-tap-highlight-color: transparent;
 }
 
 html {
     scrollbar-width: none;
     -ms-overflow-style: none;
     overflow-y: auto;
+    /* 全局抗锯齿渲染 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 html::-webkit-scrollbar {
@@ -155,7 +160,7 @@ td:nth-child(1) {
 
 th:nth-child(2),
 td:nth-child(2) {
-    width: 53%;
+    width: 51%;
     vertical-align: top;
 }
 
@@ -168,7 +173,7 @@ td:nth-child(3) {
 
 th:nth-child(4),
 td:nth-child(4) {
-    width: 19%;
+    width: 21%;
     text-align: center;
     vertical-align: middle;
 }
@@ -205,6 +210,47 @@ td:nth-child(4) {
     font-weight: 500;
 }
 
+/* 筛选标签栏：与表格容器同宽，超出横向滚动 */
+.filter-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+.filter-tabs::-webkit-scrollbar {
+    height: 0;
+    display: none;
+}
+
+.filter-tabs .tab {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-size: 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.filter-tabs .tab.active {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+/* 无数据提示 */
+.empty-row td {
+    text-align: center;
+    padding: 40px 0;
+    opacity: 0.7;
+}
+
 /* 响应 */
 @media (max-width: 768px) {
     body {
@@ -224,7 +270,7 @@ td:nth-child(4) {
 
     th:nth-child(2),
     td:nth-child(2) {
-        width: 46%;
+        width: 44%;
         vertical-align: top;
     }
 
@@ -237,55 +283,8 @@ td:nth-child(4) {
 
     th:nth-child(4),
     td:nth-child(4) {
-        width: 22%;
+        width: 24%;
         text-align: center;
         vertical-align: middle;
     }
-}
-
-/* 筛选标签栏 */
-.filter-tabs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.filter-tabs .tab {
-    padding: 6px 16px;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    cursor: pointer;
-    transition: none;
-}
-
-.filter-tabs .tab.active {
-    background-color: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-}
-
-/* 无数据提示 */
-.empty-row td {
-    text-align: center;
-    padding: 40px 0;
-    opacity: 0.7;
-}
-
-/* 筛选标签不随页面缩放变形、禁用点击高亮 */
-.filter-tabs .tab {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  font-size: 14px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-/* 全局清除移动端点击高亮 */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 全局抗锯齿渲染 */
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
