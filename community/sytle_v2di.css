@@ -270,3 +270,22 @@ td:nth-child(4) {
     padding: 40px 0;
     opacity: 0.7;
 }
+
+/* 筛选标签不随页面缩放变形、禁用点击高亮 */
+.filter-tabs .tab {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* 全局清除移动端点击高亮 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 全局抗锯齿渲染 */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
