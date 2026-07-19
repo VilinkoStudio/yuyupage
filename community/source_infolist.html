@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能建议</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./sytle_v2di.css">
+</head>
+
+<body>
+    <div class="fixed-header">
+        <h1>功能建议</h1>
+        <p class="header-desc">页面内容将根据实际开发情况进行更新，感谢您的支持。</p>
+        <p class="update-time">最近更新时间：<span id="updateDate"></span></p>
+    </div>
+
+    <div class="filter-tabs">
+        <span class="tab active" data-status="全部">全部</span>
+        <span class="tab" data-status="已采纳">已采纳</span>
+        <span class="tab" data-status="未采纳">未采纳</span>
+        <span class="tab" data-status="规划中">规划中</span>
+        <span class="tab" data-status="需评估">需评估</span>
+    </div>
+
+    <div class="table-card">
+        <div class="table-wrap scroll-wrap">
+            <table id="demandTable">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>建议</th>
+                        <th>产品</th>
+                        <th>处理状态</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+<script src="./main.js"></script>
+
+</html>

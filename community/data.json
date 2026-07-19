@@ -1,0 +1,127 @@
+{
+  "config": {
+    "updateTime": "2026-07-20 02:30:00"
+  },
+  "tableData": [
+    {
+      "suggest": "在启动设置中增加注册为Windows系统服务以实现高优先级启动的功能。#3m0nbefvx",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "为软件内映射的文件夹增加“直接打开文件夹”以挑选文件的选项。 #链接失效",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "解决3ds Max导入文件时磁力贴功能无法正常使用的兼容性问题。 #a9z2w7sv0",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "提供默认个性化选项，使所有新创建的收纳盒都继承该默认设置。 #h20a6t3i3",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "增加一个启动软件时不打开任何窗口的选项。 #h20a6t3i3",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "使磁力访问窗支持同时并列显示多个收纳盒以便于文件操作。 #h20a6t3i3",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "为磁力访问窗增加按下ESC键关闭的功能。 #h20a6t3i3",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "鼠标悬浮在图标上方时需要更好的图标动画。 #d0sov2jwk",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "将当前强制显示文件大小的\"类详情视图\"列表优化为可切换显示文件大小的\"列表视图\"，使其更接近 Windows 资源管理器显示文件名和更紧凑的列表模式。 #efsfavi8m",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "适配多点触控屏 #3umnoakrm",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "需要增加隐藏收纳盒上滑搜索功能的开关 #dpwht6kjz",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "希望各栏目具备类似游戏编程农场的独立模块化特性，支持磁吸式自由组合与从属关系配置。 #f2q4glm5q",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "功能前进和返回支持鼠标侧键 #链接失效",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "合并同色收纳盒样式希望支持横向标签页形态 #ah9irz2eo",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "希望提供桌面代办组件 #链接失效",
+      "product": "Synap",
+      "status": "需评估"
+    },
+    {
+      "suggest": "Linux 版本支持 #7hsgvu839",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "希望收纳盒折叠时可以吸附在屏幕边缘 #e11dt1epv",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "支持在收纳盒折叠状态放入文件 #b9c8qb6oj",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "支持在桌面显示悬浮控件 #2rmtlwcm4",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "需要为 txt 文件增加外显图标 #4fnmzdcri",
+      "product": "Pogget",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "支持在收纳盒合并后单独修改子收纳盒名称 #8lj3xz4hc",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "为 yuyupage 插件添加壁纸背景功能 #来自邮件",
+      "product": "插件",
+      "status": "已采纳"
+    },
+    {
+      "suggest": "为收纳盒添加固定比例缩放功能 #37ppt3e43",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
+      "suggest": "点击收纳盒操作添加交互反馈",
+      "product": "Pogget",
+      "status": "需评估"
+    }
+  ]
+}
