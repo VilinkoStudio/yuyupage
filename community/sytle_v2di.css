@@ -177,6 +177,9 @@ td:nth-child(4) {
     text-align: center;
     vertical-align: middle;
 }
+tbody td:nth-child(4) {
+    font-size: 14px;
+}
 
 .suggest-box {
     line-height: var(--line-height);
@@ -286,5 +289,8 @@ td:nth-child(4) {
         width: 24%;
         text-align: center;
         vertical-align: middle;
+    }
+    tbody td:nth-child(4) {
+        font-size: 14px;
     }
 }
