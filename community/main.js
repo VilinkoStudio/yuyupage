@@ -83,7 +83,7 @@ async function loadTableData() {
     } catch (err) {
         document.getElementById('tableBody').innerHTML = `
             <tr><td colspan="4" style="text-align:center;padding:30px;">
-                <i class="fa-solid fa-triangle-exclamation"></i> 数据加载失败，请检查data.json文件路径
+                <i class="fa-solid fa-triangle-exclamation"></i> 数据加载失败
             </td></tr>
         `;
         document.getElementById('updateDate').innerText = "读取配置失败";
