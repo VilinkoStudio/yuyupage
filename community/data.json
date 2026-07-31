@@ -4,6 +4,11 @@
   },
   "tableData": [
     {
+      "suggest": "增加恢复系统右键菜单选项。#25olzu38x",
+      "product": "Pogget",
+      "status": "需评估"
+    },
+    {
       "suggest": "增加单击文件夹打开内联视图双击打开资源管理器的按钮功能。#5n2166vi3",
       "product": "Pogget",
       "status": "已采纳"
