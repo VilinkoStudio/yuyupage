@@ -43,8 +43,43 @@
 </head>
 <body>
     <div class="container">
-        <img src="./source/3d-blocks-glass-geometric-blocks-in-orange-blue-and-clear-hues.png" alt="img">
+        <img id="main-image" src="" alt="img">
         <p class="footer-text">We Meet, Inspire, Create.</p>
     </div>
+
+    <script>
+        (function() {
+            var CACHE_KEY = 'cached_image_data';
+            var IMG_SRC = './source/3d-blocks-glass-geometric-blocks-in-orange-blue-and-clear-hues.png';
+            var img = document.getElementById('main-image');
+
+            var cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                img.src = cached;
+                return;
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', IMG_SRC, true);
+            xhr.responseType = 'blob';
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var reader = new FileReader();
+                    reader.onloadend = function() {
+                        var base64 = reader.result;
+                        localStorage.setItem(CACHE_KEY, base64);
+                        img.src = base64;
+                    };
+                    reader.readAsDataURL(xhr.response);
+                } else {
+                    img.src = IMG_SRC;
+                }
+            };
+            xhr.onerror = function() {
+                img.src = IMG_SRC;
+            };
+            xhr.send();
+        })();
+    </script>
 </body>
 </html>
