@@ -51,34 +51,33 @@
         (function() {
             var CACHE_KEY = 'cached_image_data';
             var IMG_SRC = './source/3d-blocks-glass-geometric-blocks-in-orange-blue-and-clear-hues.png';
-            var img = document.getElementById('main-image');
+            var imgEl = document.getElementById('main-image');
 
             var cached = localStorage.getItem(CACHE_KEY);
             if (cached) {
-                img.src = cached;
+                imgEl.src = cached;
                 return;
             }
 
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', IMG_SRC, true);
-            xhr.responseType = 'blob';
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var reader = new FileReader();
-                    reader.onloadend = function() {
-                        var base64 = reader.result;
-                        localStorage.setItem(CACHE_KEY, base64);
-                        img.src = base64;
-                    };
-                    reader.readAsDataURL(xhr.response);
-                } else {
-                    img.src = IMG_SRC;
+            var loader = new Image();
+            loader.onload = function() {
+                try {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = loader.naturalWidth;
+                    canvas.height = loader.naturalHeight;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(loader, 0, 0);
+                    var base64 = canvas.toDataURL('image/png');
+                    localStorage.setItem(CACHE_KEY, base64);
+                    imgEl.src = base64;
+                } catch (e) {
+                    imgEl.src = IMG_SRC;
                 }
             };
-            xhr.onerror = function() {
-                img.src = IMG_SRC;
+            loader.onerror = function() {
+                imgEl.src = IMG_SRC;
             };
-            xhr.send();
+            loader.src = IMG_SRC;
         })();
     </script>
 </body>
