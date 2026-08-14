@@ -188,6 +188,15 @@
             position: relative;
         }
 
+        /* 新增：内部包装器，用于裁剪光晕但不影响联想菜单 */
+        .search-inner-wrapper {
+            position: relative;
+            width: 100%;
+            height: 56px; /* 与搜索框高度一致 */
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
         .search-input {
             width: 100%;
             height: 56px;
@@ -220,6 +229,26 @@
 
         .search-input::placeholder {
             color: var(--placeholder-color);
+        }
+
+        /* 新增：HarmonyOS Next 风格点光源光晕层 */
+        .spotlight-glow {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0;
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            z-index: 1; /* 修改：降低层级，避免覆盖输入框内容或产生异常遮罩 */
+            will-change: transform, opacity; /* 优化性能 */
+        }
+
+        .spotlight-glow.active {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
         }
 
         .doodle-container {
@@ -371,6 +400,49 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
+        }
+
+        /* 导入/导出设置项 */
+        .io-setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            flex-wrap: nowrap;
+        }
+
+        .io-setting-row .setting-label {
+            flex: 1;
+            white-space: nowrap;
+        }
+
+        .io-btn-group {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .io-btn {
+            height: 28px;
+            padding: 0 14px;
+            border: none;
+            border-radius: 7px;
+            background: var(--input-focus-border);
+            color: #fff;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: opacity 0.15s, box-shadow 0.15s;
+        }
+
+        .io-btn:hover {
+            opacity: 0.88;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .io-btn:active {
+            opacity: 0.7;
         }
 
         .switch-input {
@@ -598,12 +670,18 @@
             <span class="time-period" id="timePeriod"></span>
         </div>
 
-        <div class="search-wrapper" style="position: relative;">
-            <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
-                <input id="searchInput" type="text" name="q" class="search-input" placeholder="使用 Bing 搜索..."
-                    autocomplete="off" autofocus spellcheck="false">
-            </form>
-            <!-- 新增：联想词悬浮菜单 -->
+        <div class="search-wrapper">
+            <!-- 新增：内部包装器 -->
+            <div class="search-inner-wrapper">
+                <!-- 新增：点光源光晕层 -->
+                <div class="spotlight-glow" id="spotlightGlow"></div>
+                
+                <form id="searchForm" action="https://cn.bing.com/search" method="get" target="_blank">
+                    <input id="searchInput" type="text" name="q" class="search-input" placeholder="使用 Bing 搜索..."
+                        autocomplete="off" autofocus spellcheck="false">
+                </form>
+            </div>
+            <!-- 联想菜单移至内部包装器之外，避免被裁剪 -->
             <div class="sug-menu" id="sugMenu"></div>
         </div>
 
@@ -635,6 +713,19 @@
             </div>
 
             <div class="modal-body">
+
+                <div class="setting-item">
+                    <div class="io-setting-row">
+                        <span class="setting-label" data-i18n="label_import_export">导入/导出设置项</span>
+
+                        <div class="io-btn-group">
+                            <button class="io-btn" type="button" id="importSettingsBtn" data-i18n="btn_import">导入</button>
+                            <button class="io-btn" type="button" id="exportSettingsBtn" data-i18n="btn_export">导出</button>
+                        </div>
+                    </div>
+
+                    <input type="file" id="importFileInput" accept=".json,application/json" style="display: none;">
+                </div>
 
                 <div class="setting-item">
                     <label class="setting-label" data-i18n="label_language">语言 / Language</label>
@@ -815,8 +906,8 @@
                 </div>
 
                 <div style="text-align: left; margin-top: 24px; opacity: 0.5; font-size: 0.8rem; display: flex; align-items: center; gap: 12px;">
-                    <span>Version 1.0.6 Build6 20260706</span>
-                    <a href="https://yuyupage.vilinko.com/update/index.html?ver=106" target="_blank" style="color: var(--text-color); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; cursor: pointer;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" data-i18n="check_update">检查更新</a>
+                    <span>Version 1.0.8 Build8 20260815</span>
+                    <a href="https://yuyupage.vilinko.com/update/index.html?ver=108" target="_blank" style="color: var(--text-color); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; cursor: pointer;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" data-i18n="check_update">检查更新</a>
                 </div>
 
             </div>
@@ -833,6 +924,18 @@
             </div>
             <div class="trust-modal-action">
                 <button class="trust-modal-btn" id="closeTrustModalBtn" data-i18n="trust_modal_btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="trust-modal-overlay" id="importErrorModalOverlay">
+        <div class="trust-modal-card">
+            <div class="trust-modal-title" data-i18n="import_error_title">导入失败：API 版本低</div>
+            <div class="trust-modal-body" data-i18n="import_error_body">
+                请尝试更新扩展版本后重试
+            </div>
+            <div class="trust-modal-action">
+                <button class="trust-modal-btn" id="closeImportErrorModalBtn" data-i18n="trust_modal_btn">确定</button>
             </div>
         </div>
     </div>

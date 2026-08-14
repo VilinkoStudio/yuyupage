@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS = {
     bingWallpaper: false // 新增：默认关闭
 };
 
+const CONFIG_VERSION = 1;
+
 let is24Hour = true;
 
 const WEATHER_API_KEY = '9d703463f9f67ab79617c7f5fde1fe73';
@@ -94,12 +96,14 @@ const allTextBtn = document.getElementById('alltext');
 const sugUrlsToggle = document.getElementById('sugUrlsToggle');
 const bingWallpaperToggle = document.getElementById('bingWallpaperToggle'); // 新增
 
+
 let translations = {}; // 存储翻译数据
 let labsConfig = {}; // 存储实验室功能配置
 let urlsConfig = {}; // 存储快捷网址配置
 
-function saveSettings() {
-    const settings = {
+// 从当前页面控件收集所有配置
+function collectSettings() {
+    return {
         engine: engineSelect.value,
         globalFont: fontSelect.value, 
         is24Hour: is24Hour,
@@ -119,11 +123,18 @@ function saveSettings() {
         showSugUrls: sugUrlsToggle ? sugUrlsToggle.checked : true,
         bingWallpaper: bingWallpaperToggle ? bingWallpaperToggle.checked : false // 新增
     };
+}
+
+async function saveSettings() {
+    const settings = collectSettings();
 
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        chrome.storage.local.set(settings);
+        return new Promise((resolve) => {
+            chrome.storage.local.set(settings, resolve);
+        });
     } else {
         console.warn('chrome.storage.local 不可用');
+        return Promise.resolve();
     }
 }
 
@@ -157,7 +168,7 @@ async function loadUrlsConfig() {
     }
 }
 
-function applyLanguage(lang) {
+function applyLanguage(lang, shouldSave = true) {
     if (!translations[lang]) return;
     
     const dict = translations[lang];
@@ -201,7 +212,9 @@ function applyLanguage(lang) {
                 if (fontSelect.value === 'minecraft') {
                     fontSelect.value = 'harmonyos';
                     applyGlobalFont('harmonyos');
-                    saveSettings();
+                    if (shouldSave) {
+                        saveSettings();
+                    }
                 }
             } else {
                 minecraftOption.disabled = false;
@@ -218,23 +231,40 @@ async function loadSettings() {
             const result = await new Promise((resolve) => {
                 chrome.storage.local.get(null, resolve); 
             });
-            settings = { ...DEFAULT_SETTINGS, ...result };
+            // 确保只合并已存在的键，避免 undefined 覆盖默认值
+            const validResult = {};
+            for (const key in DEFAULT_SETTINGS) {
+                if (result.hasOwnProperty(key)) {
+                    validResult[key] = result[key];
+                }
+            }
+            settings = { ...DEFAULT_SETTINGS, ...validResult };
         } catch (e) {
             console.error("无法从 chrome.storage.local 中读取数据", e);
         }
     }
 
-    // 加载翻译数据
-    await loadTranslations();
-    // 加载实验室配置
-    await loadLabsConfig();
-    // 加载快捷网址配置
-    await loadUrlsConfig();
+    // 并行加载资源，提高速度
+    await Promise.all([
+        loadTranslations(),
+        loadLabsConfig(),
+        loadUrlsConfig()
+    ]);
 
+    // 应用所有设置到 UI
+    applySettingsToUI(settings, false);
+
+    if (settings.showWeather) {
+        fetchWeather();
+    }
+}
+
+// 将设置对象应用到所有 UI 控件（供初始化加载与配置导入复用）
+function applySettingsToUI(settings, shouldSave = false) {
     // 应用语言设置
     if (languageSelect) {
         languageSelect.value = settings.language;
-        applyLanguage(settings.language);
+        applyLanguage(settings.language, shouldSave); // 初始化阶段传递 false，不保存
     }
 
     engineSelect.value = settings.engine;
@@ -284,21 +314,17 @@ async function loadSettings() {
         sugUrlsToggle.checked = settings.showSugUrls;
     }
 
-    // 新增：加载 Bing 壁纸设置
+    // 加载 Bing 壁纸设置
     if (bingWallpaperToggle) {
         bingWallpaperToggle.checked = settings.bingWallpaper;
     }
     
-    // 新增：应用 Bing 壁纸
+    // 应用 Bing 壁纸
     applyBingWallpaper(settings.bingWallpaper);
 
     updateTrustRingDependentControls(vilinkoConnectToggle.checked);
 
     applyNoteBtnVisibility(settings.showNoteBtn);
-
-    if (settings.showWeather) {
-        fetchWeather();
-    }
 }
 
 function applyEngine(engine) {
@@ -564,7 +590,7 @@ fontSelect.addEventListener('change', (e) => {
 // 监听语言选择变化
 if (languageSelect) {
     languageSelect.addEventListener('change', (e) => {
-        applyLanguage(e.target.value);
+        applyLanguage(e.target.value, true); // 用户手动更改时保存
         saveSettings();
     });
 }
@@ -693,17 +719,6 @@ if (trustModalOverlay) {
         }
     });
 }
-
-loadSettings();
-updateClock();
-updateFooterYear();
-loadPoetry();
-setInterval(updateClock, 1000);
-setInterval(() => {
-    if (weatherToggle.checked) {
-        fetchWeather();
-    }
-}, 600000);
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
@@ -1086,7 +1101,7 @@ function updateTrustRingDependentControls(isTrustRingEnabled) {
     }
 }
 
-// 新增：应用 Bing 壁纸功能
+// 应用 Bing 壁纸功能
 function applyBingWallpaper(enabled) {
     const bgElement = document.getElementById('bing-bg');
     const timeDisplay = document.getElementById('timeDisplay');
@@ -1099,6 +1114,7 @@ function applyBingWallpaper(enabled) {
     const allTextBtn = document.getElementById('alltext');
     const openSettingsBtn = document.getElementById('openSettingsBtn');
     const sugMenu = document.getElementById('sugMenu');
+    const spotlightGlow = document.getElementById('spotlightGlow'); // 新增：获取光晕元素
 
     // 定义一个内部函数来更新联想菜单样式，以便复用和响应主题变化
     function updateSugMenuStyle() {
@@ -1126,10 +1142,56 @@ function applyBingWallpaper(enabled) {
         sugMenu.style.WebkitBackdropFilter = 'blur(15px)';
     }
 
+    // 新增：处理搜索框鼠标移动光晕跟随效果的函数
+    function handleSearchMouseMove(e) {
+        if (!enabled || !spotlightGlow) return;
+
+        // 修改：获取内部包装器的矩形，以便正确计算相对坐标
+        const innerWrapper = document.querySelector('.search-inner-wrapper');
+        if (!innerWrapper) return;
+
+        const rect = innerWrapper.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // 设置光晕位置
+        spotlightGlow.style.left = `${x}px`;
+        spotlightGlow.style.top = `${y}px`;
+        
+        // 确保光晕可见，并强制重置可能引起闪烁的样式
+        spotlightGlow.style.opacity = '1';
+        spotlightGlow.style.transform = 'translate(-50%, -50%) scale(1)';
+        spotlightGlow.style.backgroundColor = 'transparent';
+        spotlightGlow.style.mixBlendMode = 'normal';
+    }
+
+    function handleSearchMouseLeave() {
+        if (!spotlightGlow) return;
+        spotlightGlow.style.opacity = '0';
+        spotlightGlow.style.transform = 'translate(-50%, -50%) scale(0.5)';
+        spotlightGlow.style.backgroundColor = 'transparent';
+        spotlightGlow.style.mixBlendMode = 'normal';
+    }
+
+    // 用于存储主题变化监听器的引用，以便移除
+    if (!window._bingWallpaperThemeListener) {
+        window._bingWallpaperThemeListener = null;
+    }
+
     if (enabled) {
         // 显示背景层并获取壁纸
         bgElement.style.display = 'block';
         fetchBingWallpaper();
+
+        // 新增：绑定鼠标移动事件监听器
+        if (searchInput) {
+            // 移除旧的监听器以防重复绑定
+            searchInput.removeEventListener('mousemove', handleSearchMouseMove);
+            searchInput.removeEventListener('mouseleave', handleSearchMouseLeave);
+            
+            searchInput.addEventListener('mousemove', handleSearchMouseMove);
+            searchInput.addEventListener('mouseleave', handleSearchMouseLeave);
+        }
 
         // 时间显示：移除模糊背景，改为文字阴影
         if (timeDisplay) {
@@ -1275,7 +1337,17 @@ function applyBingWallpaper(enabled) {
             
             // 监听系统主题变化，实时更新菜单样式
             if (window.matchMedia) {
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateSugMenuStyle);
+                // 移除旧的监听器
+                if (window._bingWallpaperThemeListener) {
+                    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', window._bingWallpaperThemeListener);
+                }
+                // 创建新的监听器并保存引用
+                window._bingWallpaperThemeListener = () => {
+                    if (bingWallpaperToggle && bingWallpaperToggle.checked) {
+                        updateSugMenuStyle();
+                    }
+                };
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', window._bingWallpaperThemeListener);
             }
         }
 
@@ -1283,6 +1355,25 @@ function applyBingWallpaper(enabled) {
         // 禁用壁纸，恢复默认样式
         bgElement.style.display = 'none';
         bgElement.style.backgroundImage = '';
+
+        // 新增：移除鼠标移动事件监听器
+        if (searchInput) {
+            searchInput.removeEventListener('mousemove', handleSearchMouseMove);
+            searchInput.removeEventListener('mouseleave', handleSearchMouseLeave);
+        }
+        
+        // 修复点光源效果在壁纸功能关闭后仍然存在的问题
+        if (spotlightGlow) {
+            // 强制隐藏并重置样式
+            spotlightGlow.style.opacity = '0';
+            spotlightGlow.style.transform = '';
+            spotlightGlow.style.left = '';
+            spotlightGlow.style.top = '';
+            spotlightGlow.style.backgroundColor = '';
+            spotlightGlow.style.mixBlendMode = '';
+            // 使用 cssText = '' 清除所有内联样式，确保完全恢复 CSS 类定义的默认状态
+            spotlightGlow.style.cssText = ''; 
+        }
 
         // 清除内联样式以恢复 CSS 变量控制
         if (timeDisplay) {
@@ -1310,12 +1401,10 @@ function applyBingWallpaper(enabled) {
             pageFooter.style.width = '100%';
             pageFooter.style.left = '0';
             pageFooter.style.transform = 'none';
-            // 修复：恢复页脚开关控制的状态
             applyFooter(footerToggle ? footerToggle.checked : true);
         }
         if (weatherWidget) {
             weatherWidget.style.cssText = '';
-            // 修复：清除子元素（图标和文字）在壁纸模式下添加的内联样式，以恢复默认 CSS 样式
             const icon = weatherWidget.querySelector('i');
             const text = weatherWidget.querySelector('span');
             if (icon) icon.style.cssText = '';
@@ -1323,9 +1412,24 @@ function applyBingWallpaper(enabled) {
         }
         if (allTextBtn) allTextBtn.style.cssText = '';
         if (openSettingsBtn) openSettingsBtn.style.cssText = '';
+        
         if (sugMenu) {
-            sugMenu.style.cssText = '';
-            // 恢复后可能需要重新渲染一次菜单以应用正确颜色，或者依靠 CSS 默认值
+            sugMenu.style.backgroundColor = '';
+            sugMenu.style.borderColor = '';
+            sugMenu.style.backdropFilter = '';
+            sugMenu.style.WebkitBackdropFilter = '';
+            sugMenu.style.boxShadow = '';
+            
+            const items = sugMenu.querySelectorAll('.sug-item');
+            items.forEach(item => {
+                item.style.color = '';
+                item.style.backgroundColor = '';
+            });
+
+            if (window.matchMedia && window._bingWallpaperThemeListener) {
+                window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', window._bingWallpaperThemeListener);
+                window._bingWallpaperThemeListener = null;
+            }
         }
     }
 }
@@ -1334,7 +1438,7 @@ function applyBingWallpaper(enabled) {
 async function fetchBingWallpaper() {
     const bgElement = document.getElementById('bing-bg');
     try {
-        const response = await fetch('https://bing.shangzhenyang.com/api/1080p');
+        const response = await fetch('https://bing.biturl.top/?resolution=UHD&format=image&index=0&mkt=zh-CN');
         if (response.ok) {
             const imageUrl = response.url; // API 可能会重定向到图片地址
             bgElement.style.backgroundImage = `url('${imageUrl}')`;
@@ -1344,10 +1448,155 @@ async function fetchBingWallpaper() {
     }
 }
 
-// 新增：监听 Bing 壁纸开关变化
+// 新增：绑定 Bing 壁纸开关事件
 if (bingWallpaperToggle) {
-    bingWallpaperToggle.addEventListener('change', (e) => {
+    bingWallpaperToggle.addEventListener('change', async (e) => {
         applyBingWallpaper(e.target.checked);
-        saveSettings();
+        await saveSettings();
     });
 }
+
+// 导入 / 导出配置功能
+const importSettingsBtn = document.getElementById('importSettingsBtn');
+const exportSettingsBtn = document.getElementById('exportSettingsBtn');
+const importFileInput = document.getElementById('importFileInput');
+const importErrorModalOverlay = document.getElementById('importErrorModalOverlay');
+const closeImportErrorModalBtn = document.getElementById('closeImportErrorModalBtn');
+
+// 关闭导入失败提示弹窗
+if (closeImportErrorModalBtn && importErrorModalOverlay) {
+    closeImportErrorModalBtn.addEventListener('click', () => {
+        importErrorModalOverlay.classList.remove('active');
+    });
+}
+
+if (importErrorModalOverlay) {
+    importErrorModalOverlay.addEventListener('click', (e) => {
+        if (e.target === importErrorModalOverlay) {
+            importErrorModalOverlay.classList.remove('active');
+        }
+    });
+}
+
+// 校验并规范化导入的设置值，非法值回退到默认值，避免页面异常
+function normalizeImportedSettings(raw) {
+    const merged = { ...DEFAULT_SETTINGS };
+    for (const key in DEFAULT_SETTINGS) {
+        if (Object.prototype.hasOwnProperty.call(raw, key)) {
+            let value = raw[key];
+            if (typeof DEFAULT_SETTINGS[key] === 'boolean') {
+                value = Boolean(value);
+            } else if (typeof DEFAULT_SETTINGS[key] === 'string') {
+                value = String(value);
+            }
+            merged[key] = value;
+        }
+    }
+
+    // 校验下拉选择类字段，非法值回退到默认值
+    const selectFields = {
+        engine: engineSelect,
+        globalFont: fontSelect,
+        language: languageSelect,
+        weatherUnit: weatherUnitSelect,
+        noteApp: noteAppSelect
+    };
+    for (const key in selectFields) {
+        const select = selectFields[key];
+        if (select) {
+            const validValues = Array.from(select.options).map(o => o.value);
+            if (!validValues.includes(merged[key])) {
+                merged[key] = DEFAULT_SETTINGS[key];
+            }
+        }
+    }
+    return merged;
+}
+
+// 导出当前配置为 JSON 文件
+if (exportSettingsBtn) {
+    exportSettingsBtn.addEventListener('click', () => {
+        const payload = {
+            app: 'YuyuPage',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            settings: collectSettings()
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        a.download = `yuyupage-settings-${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+}
+
+// 导入配置
+if (importSettingsBtn && importFileInput) {
+    importSettingsBtn.addEventListener('click', () => {
+        importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+
+            // 版本校验：导入文件版本高于当前扩展支持的版本时拒绝导入
+            const fileVersion = parsed && typeof parsed === 'object' ? Number(parsed.version) : NaN;
+            if (!Number.isNaN(fileVersion) && fileVersion > CONFIG_VERSION) {
+                if (importErrorModalOverlay) {
+                    importErrorModalOverlay.classList.add('active');
+                }
+                return;
+            }
+
+            // 兼容直接导出对象与 { settings: {...} } 包装两种格式
+            const raw = parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.settings
+                ? parsed.settings
+                : parsed;
+
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+                throw new Error('invalid');
+            }
+
+            const settings = normalizeImportedSettings(raw);
+            applySettingsToUI(settings, true);
+            await saveSettings();
+
+            if (settings.showWeather) {
+                fetchWeather();
+            }
+
+            const currentLang = languageSelect ? languageSelect.value : 'zh-CN';
+            const dict = translations[currentLang] || {};
+            alert(dict['import_success'] || '配置导入成功');
+        } catch (err) {
+            const currentLang = languageSelect ? languageSelect.value : 'zh-CN';
+            const dict = translations[currentLang] || {};
+            alert(dict['import_failed'] || '配置导入失败：文件格式无效');
+        } finally {
+            importFileInput.value = '';
+        }
+    });
+}
+
+// 初始化加载
+loadSettings();
+updateClock();
+updateFooterYear();
+loadPoetry();
+setInterval(updateClock, 1000);
+setInterval(() => {
+    if (weatherToggle.checked) {
+        fetchWeather();
+    }
+}, 600000);
