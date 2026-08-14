@@ -1518,7 +1518,7 @@ if (exportSettingsBtn) {
     exportSettingsBtn.addEventListener('click', () => {
         const payload = {
             app: 'YuyuPage',
-            version: 1,
+            version: CONFIG_VERSION,
             exportedAt: new Date().toISOString(),
             settings: collectSettings()
         };
