@@ -1,5 +1,6 @@
 {
   "latestVersion": "108",
   "WarningInfoVer": 0,
-  "WarningInfo": "新版本包含实验功能"
+  "WarningInfo": "新版本包含实验功能",
+  "debugsys": "0"
 }

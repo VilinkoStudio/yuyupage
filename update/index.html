@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>版本检查</title>
+    <title>Yuyupage Update</title>
     <style>
         :root {
             --bg-color: #fbfeff;
@@ -182,14 +182,14 @@
             if (currentVerParam === null || currentVerParam.trim() === '') {
                 loadingEl.classList.add('hidden');
                 document.getElementById('param-error-view').classList.remove('hidden');
-                return; // 终止后续 fetch 请求
+                return;
             }
 
             const currentVer = parseInt(currentVerParam, 10);
             if (isNaN(currentVer)) {
                 loadingEl.classList.add('hidden');
                 document.getElementById('param-error-view').classList.remove('hidden');
-                return; // 终止后续 fetch 请求
+                return;
             }
 
             try {
@@ -199,6 +199,10 @@
                 const versionData = await versionResponse.json();
                 const rawVersion = versionData.latestVersion || versionData.version || versionData;
                 const latestVer = parseInt(rawVersion, 10);
+
+                if (String(versionData.debugsys) === '1') {
+                    throw new Error('Debug mode active');
+                }
 
                 if (isNaN(latestVer)) throw new Error('Invalid version data');
 
@@ -213,7 +217,6 @@
                     const downloadLink = document.getElementById('download-link');
                     downloadLink.href = `https://raw.githubusercontent.com/VilinkoStudio/yuyupage/refs/heads/crx/${latestVer}.zip`;
                     
-                    // 处理警告信息
                     const warningContainer = document.getElementById('warning-container');
                     const warningInfoVer = versionData.WarningInfoVer;
                     const warningInfo = versionData.WarningInfo;
