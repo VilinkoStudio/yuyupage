@@ -20,65 +20,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        .container {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .container img {
-            max-width: 100px;
-            max-height: 100px;
-            width: auto;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
         .footer-text {
-            margin-top: 16px;
             color: #4a4a4a;
             font-size: 13px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img id="main-image" src="" alt="img">
-        <p class="footer-text">We Meet, Inspire, Create.</p>
-    </div>
-
-    <script>
-        (function() {
-            var CACHE_KEY = 'cached_image_data';
-            var IMG_SRC = './source/3d-blocks-glass-geometric-blocks-in-orange-blue-and-clear-hues.png';
-            var imgEl = document.getElementById('main-image');
-
-            var cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                imgEl.src = cached;
-                return;
-            }
-
-            var loader = new Image();
-            loader.onload = function() {
-                try {
-                    var canvas = document.createElement('canvas');
-                    canvas.width = loader.naturalWidth;
-                    canvas.height = loader.naturalHeight;
-                    var ctx = canvas.getContext('2d');
-                    ctx.drawImage(loader, 0, 0);
-                    var base64 = canvas.toDataURL('image/png');
-                    localStorage.setItem(CACHE_KEY, base64);
-                    imgEl.src = base64;
-                } catch (e) {
-                    imgEl.src = IMG_SRC;
-                }
-            };
-            loader.onerror = function() {
-                imgEl.src = IMG_SRC;
-            };
-            loader.src = IMG_SRC;
-        })();
-    </script>
+    <p class="footer-text">We Meet, Inspire, Create.</p>
 </body>
 </html>

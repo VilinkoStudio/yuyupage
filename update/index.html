@@ -194,7 +194,7 @@
 
             try {
                 const versionResponse = await fetch(`version.json?_t=${Date.now()}`);
-                if (!versionResponse.ok) throw new Error('Failed to fetch version.json');
+                if (!versionResponse.ok) throw new Error('版本参数文件获取失败');
                 
                 const versionData = await versionResponse.json();
                 const rawVersion = versionData.latestVersion || versionData.version || versionData;
