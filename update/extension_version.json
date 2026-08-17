@@ -1,4 +1,6 @@
 {
   "ExtensionVersion": "108",
-  "GithubRelVersion": "108"
+  "ExtensionVerInfo": "1.0.8",
+  "GithubRelVersion": "108",
+  "GithubRelVersionInfo": "1.0.8"
 }
