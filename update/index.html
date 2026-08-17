@@ -201,7 +201,10 @@
                 const latestVer = parseInt(rawVersion, 10);
 
                 if (String(versionData.debugsys) === '1') {
-                    throw new Error('Debug mode active');
+                    console.error('Request timeout.');
+                    loadingEl.classList.add('hidden');
+                    document.getElementById('error-view').classList.remove('hidden');
+                    return;
                 }
 
                 if (isNaN(latestVer)) throw new Error('Invalid version data');
@@ -231,7 +234,7 @@
                     updateRequiredEl.classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Version check error:', error);
+                console.error(error);
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('error-view').classList.remove('hidden');
             }
