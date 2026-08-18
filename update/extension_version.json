@@ -2,5 +2,6 @@
   "ExtensionVersion": "108",
   "ExtensionVerInfo": "1.0.8",
   "GithubVersion": "108",
-  "GithubVersionInfo": "1.0.8"
+  "GithubVersionInfo": "1.0.8",
+  "sysinfo": "0"
 }
