@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "YuyuPage",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "一个简洁的起始页。",
   "author": "Copyright (c) 2026 Vilinko. All rights reserved.",
+  "info": "Github",
   "icons": {
     "16": "source/icon16.png",
     "48": "source/icon48.png",
@@ -12,6 +13,15 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
+  "action": {
+    "default_title": "YuyuPage",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "source/icon16.png",
+      "48": "source/icon48.png",
+      "128": "source/icon128.png"
+    }
+  },
   "background": {
     "service_worker": "source/js/background.js"
   },
@@ -19,9 +29,11 @@
     "https://api.openweathermap.org/*",
     "https://v2.jinrishici.com/*",
     "https://suggestion.baidu.com/*",
-    "https://bing.biturl.top/*"
+    "https://bing.biturl.top/*",
+    "https://yuyupage.vilinko.com/*"
   ],
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ]
 }

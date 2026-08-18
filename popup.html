@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Yuyupage Popup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      padding: 16px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      border-radius: 12px;
+      transition: background 0.3s, color 0.3s;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      color: #5279FB;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+
+    .header img {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+    }
+
+    .card {
+      background: #f8f9fc;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #eef0f5;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .card .label {
+      font-size: 13px;
+      color: #4b5563;
+      display: block;
+      margin-bottom: 12px;
+      transition: color 0.3s;
+    }
+
+    .link-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .link-btn {
+      font-size: 15px;
+      color: #5279FB;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+      padding: 4px 8px;
+      border-radius: 4px;
+      user-select: none;
+    }
+
+    .link-btn:hover {
+      background: rgba(82, 121, 251, 0.08);
+      color: #3b5fd9;
+    }
+
+    .link-btn:active {
+      background: rgba(82, 121, 251, 0.15);
+    }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      background: #d1d5db;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    /* 第二个卡片 - Build 信息 */
+    .build-card {
+      background: #f8f9fc;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #eef0f5;
+      transition: background 0.3s, border-color 0.3s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .build-info {
+      font-size: 14px;
+      color: #1f2937;
+      font-weight: 500;
+      transition: color 0.3s;
+      word-break: break-all;
+      text-align: left;
+    }
+
+    .build-update-btn {
+      font-size: 15px;
+      color: #5279FB;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+      padding: 4px 8px;
+      border-radius: 4px;
+      user-select: none;
+      text-align: right;
+      align-self: flex-end;
+    }
+
+    .build-update-btn:hover {
+      background: rgba(82, 121, 251, 0.08);
+      color: #3b5fd9;
+    }
+
+    .build-update-btn:active {
+      background: rgba(82, 121, 251, 0.15);
+    }
+
+    .build-update-btn.checking {
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .build-update-btn.checking:hover {
+      background: transparent;
+    }
+
+    .card-spacer {
+      margin-top: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0a0a0a;
+      }
+
+      .header h1 {
+        color: #9AB1FA;
+      }
+
+      .card {
+        background: #1a1a1a;
+        border-color: #2d2d2d;
+      }
+
+      .card .label {
+        color: #d4d4d4;
+      }
+
+      .link-btn {
+        color: #9AB1FA;
+      }
+
+      .link-btn:hover {
+        background: rgba(122, 162, 255, 0.15);
+        color: #8ab4ff;
+      }
+
+      .link-btn:active {
+        background: rgba(122, 162, 255, 0.25);
+      }
+
+      .divider {
+        background: #3d3d3d;
+      }
+
+      .build-card {
+        background: #1a1a1a;
+        border-color: #2d2d2d;
+      }
+
+      .build-info {
+        color: #e5e7eb;
+      }
+
+      .build-update-btn {
+        color: #9AB1FA;
+      }
+
+      .build-update-btn:hover {
+        background: rgba(122, 162, 255, 0.15);
+        color: #8ab4ff;
+      }
+
+      .build-update-btn:active {
+        background: rgba(122, 162, 255, 0.25);
+      }
+
+      .build-update-btn.checking {
+        color: #6b7280;
+      }
+
+      .build-update-btn.checking:hover {
+        background: transparent;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Yuyupage</h1>
+    <img src="source/icon128.png" alt="icon" draggable="false">
+  </div>
+
+  <div class="card">
+    <span class="label">如有任何问题请反馈：</span>
+    
+    <div class="link-group">
+      <span class="link-btn" id="qqChannel">QQ 频道</span>
+      <span class="divider"></span>
+      <span class="link-btn" id="submitIssue">提交 issue</span>
+    </div>
+  </div>
+
+  <div class="build-card card-spacer">
+    <div class="build-info" id="buildVersion">
+        Version: <span id="manifestVersion"></span><br>
+        BuildVer: 10920260818_11<br>
+        BuildType: <span id="manifestInfo"></span><br>
+        ConfigAPI: v2
+  </div>
+    <span class="build-update-btn" id="checkUpdate">检查更新</span>
+  </div>
+
+  <script src="./source/js/popup.js"></script>
+</body>
+</html>

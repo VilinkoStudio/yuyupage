@@ -12,6 +12,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 sendResponse({ error: error.message });
             });
         
+        return true; // 异步响应
+    }
+    
+    if (message.action === 'openUrl' && message.url) {
+        chrome.tabs.create({ url: message.url });
+        sendResponse({ success: true });
         return true;
     }
 });

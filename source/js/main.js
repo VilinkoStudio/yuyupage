@@ -1,6 +1,6 @@
 const DEFAULT_SETTINGS = {
     engine: 'bing',
-    globalFont: 'minecraft', 
+    globalFont: 'minecraft',
     is24Hour: true,
     blink: false,
     customFont: false,
@@ -19,7 +19,7 @@ const DEFAULT_SETTINGS = {
     bingWallpaper: false // 新增：默认关闭
 };
 
-const CONFIG_VERSION = 1;
+const CONFIG_VERSION = 2;
 
 let is24Hour = true;
 
@@ -62,7 +62,7 @@ const modalOverlay = document.getElementById('modalOverlay');
 const openSettingsBtn = document.getElementById('openSettingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const engineSelect = document.getElementById('engineSelect');
-const fontSelect = document.getElementById('fontSelect'); 
+const fontSelect = document.getElementById('fontSelect');
 const languageSelect = document.getElementById('languageSelect');
 const searchForm = document.getElementById('searchForm');
 const searchInput = document.getElementById('searchInput');
@@ -105,7 +105,7 @@ let urlsConfig = {}; // 存储快捷网址配置
 function collectSettings() {
     return {
         engine: engineSelect.value,
-        globalFont: fontSelect.value, 
+        globalFont: fontSelect.value,
         is24Hour: is24Hour,
         blink: blinkToggle.checked,
         customFont: fontToggle.checked,
@@ -114,7 +114,7 @@ function collectSettings() {
         weatherUnit: weatherUnitSelect.value,
         weatherLocation: weatherLocationInput.value || 'Beijing',
         weatherApiKey: weatherApiKeyInput.value.trim(),
-        showDoodle: false, 
+        showDoodle: false,
         showPoetry: poetryToggle.checked,
         vilinkoConnect: vilinkoConnectToggle.checked,
         showNoteBtn: noteBtnToggle.checked,
@@ -170,7 +170,7 @@ async function loadUrlsConfig() {
 
 function applyLanguage(lang, shouldSave = true) {
     if (!translations[lang]) return;
-    
+
     const dict = translations[lang];
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -229,7 +229,7 @@ async function loadSettings() {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         try {
             const result = await new Promise((resolve) => {
-                chrome.storage.local.get(null, resolve); 
+                chrome.storage.local.get(null, resolve);
             });
             // 确保只合并已存在的键，避免 undefined 覆盖默认值
             const validResult = {};
@@ -270,8 +270,8 @@ function applySettingsToUI(settings, shouldSave = false) {
     engineSelect.value = settings.engine;
     applyEngine(settings.engine);
 
-    fontSelect.value = settings.globalFont; 
-    applyGlobalFont(settings.globalFont); 
+    fontSelect.value = settings.globalFont;
+    applyGlobalFont(settings.globalFont);
 
     is24Hour = settings.is24Hour;
     timeFormatToggle.checked = settings.is24Hour;
@@ -318,7 +318,7 @@ function applySettingsToUI(settings, shouldSave = false) {
     if (bingWallpaperToggle) {
         bingWallpaperToggle.checked = settings.bingWallpaper;
     }
-    
+
     // 应用 Bing 壁纸
     applyBingWallpaper(settings.bingWallpaper);
 
@@ -331,7 +331,7 @@ function applyEngine(engine) {
     const config = searchEngines[engine];
     searchForm.action = config.action;
     searchInput.name = config.name;
-    
+
     const currentLang = languageSelect ? languageSelect.value : 'zh-CN';
     const dict = translations[currentLang];
     if (dict) {
@@ -434,19 +434,19 @@ function applyPoetry(enabled) {
 if (poetryContent) {
     poetryContent.addEventListener('dblclick', (e) => {
         e.stopPropagation();
-        
+
         const content = poetryContent.innerText.trim();
         if (!content) return;
 
         const currentEngine = engineSelect ? engineSelect.value : 'bing';
         const engineConfig = searchEngines[currentEngine];
-        
+
         if (engineConfig) {
             const searchUrl = `${engineConfig.action}?${engineConfig.name}=${encodeURIComponent(content)}`;
             window.open(searchUrl, '_blank');
         }
     });
-    
+
     poetryContent.style.cursor = 'pointer';
     poetryContent.title = '双击搜索诗词';
 }
@@ -456,12 +456,12 @@ async function loadPoetry() {
         const response = await fetch('https://v2.jinrishici.com/one.json');
         const data = await response.json();
         if (data && data.status === "success") {
-            const content = data.data.content; 
+            const content = data.data.content;
             if (poetryContent) poetryContent.innerText = content;
         }
     } catch (error) {
         console.error('获取诗词失败:', error);
-        if (poetryContent) poetryContent.innerText = "海内存知己，天涯若比邻。";
+        if (poetryContent) poetryContent.innerText = "莲瓣入水而不苦根茎，勿执着。";
     }
 }
 
@@ -489,7 +489,7 @@ async function fetchWeather() {
     const symbol = unit === 'metric' ? '°C' : '°F';
     let apiKey = WEATHER_API_KEY;
     const customKey = weatherApiKeyInput.value.trim();
-    
+
     if (customKey) {
         apiKey = customKey;
     } else if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
@@ -580,7 +580,7 @@ engineSelect.addEventListener('change', (e) => {
 
 fontSelect.addEventListener('change', (e) => {
     if (e.target.value === 'minecraft' && languageSelect && languageSelect.value === 'en') {
-        e.target.value = 'harmonyos'; 
+        e.target.value = 'harmonyos';
         alert('Pixel font is not supported in English mode.');
     }
     applyGlobalFont(e.target.value);
@@ -692,7 +692,7 @@ if (allTextBtn) {
     allTextBtn.addEventListener('click', () => {
         // 检查信任环是否启用
         const isTrustRingEnabled = vilinkoConnectToggle ? vilinkoConnectToggle.checked : false;
-        
+
         if (!isTrustRingEnabled) {
             // 如果未启用，显示弹窗
             if (trustModalOverlay) {
@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!searchInput || !sugMenu) return;
 
-    let activeSugIndex = -1; 
+    let activeSugIndex = -1;
 
     // 检查是否为实验室协议链接
     function checkLabsProtocol(query) {
@@ -749,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hideSugMenu();
             return;
         }
-        
+
         // 如果是实验室协议，不显示搜索建议，直接等待回车处理
         if (checkLabsProtocol(query)) {
             hideSugMenu();
@@ -758,7 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let customMenuResult = tryCalculate(query) || tryTimeCalculate(query) || tryTranslation(query);
         fetchBaiduSug(query, customMenuResult);
-    }, 150)); 
+    }, 150));
 
     // 监听回车键，拦截实验室协议
     searchInput.addEventListener('keydown', (e) => {
@@ -777,55 +777,58 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanStr = str.replace(/\s+/g, '');
         const calcRegex = /^(-?\d+(\.\d+)?)([\+\-\*\/])(-?\d+(\.\d+)?)$/;
         const match = cleanStr.match(calcRegex);
-        
+
         if (!match) return null;
-        
+
         const num1 = parseFloat(match[1]);
         const op = match[3];
         const num2 = parseFloat(match[4]);
         let res = 0;
-        
+
         switch (op) {
             case '+': res = num1 + num2; break;
             case '-': res = num1 - num2; break;
             case '*': res = num1 * num2; break;
-            case '/': 
+            case '/':
                 if (num2 === 0) return { type: 'calc', text: '计算算式：除数不能为零', value: '' };
-                res = num1 / num2; 
+                res = num1 / num2;
                 break;
             default: return null;
         }
-        
+
         if (!Number.isInteger(res)) {
             res = parseFloat(res.toFixed(8));
         }
-        
+
         return { type: 'calc', text: `计算算式：${num1} ${op} ${num2} = ${res}`, value: res.toString() };
     }
 
     function tryTimeCalculate(str) {
         if (!str.toLowerCase().startsWith('totime')) return null;
-        
+
         const dateStr = str.substring(6).trim();
         const dateRegex = /^(\d{4})[-/.]?(\d{2})[-/.]?(\d{2})$/;
         const match = dateStr.match(dateRegex);
-        
+
         if (!match) return null;
-        
+
         const targetDate = new Date(`${match[1]}-${match[2]}-${match[3]}T00:00:00`);
         if (isNaN(targetDate.getTime())) return null;
-        
+
         const nowDate = new Date();
         const currentDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
-        
+
         const diffTime = targetDate.getTime() - currentDate.getTime();
         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-        
+
         return { type: 'time', text: diffDays.toString(), value: diffDays.toString() };
     }
 
     function tryTranslation(str) {
-        // 检测是否包含英文字符
+        // 英文语言环境下不显示快捷翻译
+        const currentLang = languageSelect ? languageSelect.value : 'zh-CN';
+        if (currentLang === 'en') return null;
+
         if (/[a-zA-Z]/.test(str)) {
             const encodedText = encodeURIComponent(str);
             const translationUrl = `https://www.bing.com/translator?from=auto&to=zh-Hans&text=${encodedText}`;
@@ -836,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchBaiduSug(text, customMenuResult) {
         const url = `https://suggestion.baidu.com/su?wd=${encodeURIComponent(text)}&p=3&prod=pc&cb=`;
-        
+
         fetch(url, { method: 'GET', mode: 'cors' })
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
@@ -847,7 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const textData = decoder.decode(buffer);
                 const startIdxValid = textData.indexOf('s:[');
                 let sugArray = [];
-                
+
                 if (startIdxValid !== -1) {
                     const endIdx = textData.indexOf(']', startIdxValid);
                     if (endIdx !== -1) {
@@ -856,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         sugArray = JSON.parse(cleanArrStr);
                     }
                 }
-                
+
                 renderSugMenu(sugArray, customMenuResult);
             })
             .catch(err => {
@@ -875,7 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 只有在设置开启时才执行此逻辑
         const query = searchInput.value.trim();
         let matchedUrl = null;
-        
+
         const isSugUrlsEnabled = sugUrlsToggle ? sugUrlsToggle.checked : true;
 
         if (isSugUrlsEnabled && query) {
@@ -892,44 +895,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const urlItem = document.createElement('div');
             urlItem.className = 'sug-item custom-tool-item';
             urlItem.setAttribute('data-value', matchedUrl);
-            
+
             // 设置 Flex 布局以容纳右侧图标
             urlItem.style.display = 'flex';
             urlItem.style.justifyContent = 'space-between';
             urlItem.style.alignItems = 'center';
             urlItem.style.fontWeight = 'bold';
             urlItem.style.color = 'var(--input-focus-border)';
-            
+
             if (searchInput.classList.contains('custom-font')) {
                 urlItem.style.fontFamily = "'MinecraftFont', sans-serif";
             } else {
                 urlItem.style.fontFamily = document.body.style.fontFamily;
             }
-            
+
             // 创建文本span
             const textSpan = document.createElement('span');
             textSpan.textContent = matchedUrl;
             textSpan.style.overflow = 'hidden';
             textSpan.style.textOverflow = 'ellipsis';
             textSpan.style.whiteSpace = 'nowrap';
-            
+
             // 创建外链图标
             const iconSpan = document.createElement('i');
             iconSpan.className = 'fa-solid fa-arrow-up-right-from-square';
             iconSpan.style.fontSize = '0.8em';
             iconSpan.style.opacity = '0.7';
             iconSpan.style.marginLeft = '8px';
-            // 确保图标使用 FontAwesome 字体，不被全局字体覆盖
-            iconSpan.style.fontFamily = "'Font Awesome 6 Free', 'Font Awesome 6 Brands', sans-serif"; 
+            iconSpan.style.fontFamily = "'Font Awesome 6 Free', 'Font Awesome 6 Brands', sans-serif";
 
             urlItem.appendChild(textSpan);
             urlItem.appendChild(iconSpan);
-            
+
             urlItem.addEventListener('click', () => {
                 window.open(matchedUrl, '_blank');
                 hideSugMenu();
             });
-            
+
             sugMenu.appendChild(urlItem);
             hasContent = true;
         }
@@ -938,27 +940,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const customItem = document.createElement('div');
             customItem.className = 'sug-item custom-tool-item';
             customItem.setAttribute('data-value', customMenuResult.value);
-            
+
             if (customMenuResult.type === 'calc') {
                 customItem.style.fontWeight = 'bold';
                 customItem.style.color = 'var(--input-focus-border)';
             } else if (customMenuResult.type === 'time') {
                 customItem.style.fontWeight = 'bold';
-                customItem.style.color = 'var(--input-focus-border)'; 
+                customItem.style.color = 'var(--input-focus-border)';
             } else if (customMenuResult.type === 'translate') {
                 customItem.style.fontWeight = 'bold';
                 customItem.style.color = 'var(--input-focus-border)';
             }
-            
+
             if (searchInput.classList.contains('custom-font')) {
                 customItem.style.fontFamily = "'MinecraftFont', sans-serif";
             } else {
                 customItem.style.fontFamily = document.body.style.fontFamily;
             }
-            
+
             customItem.textContent = customMenuResult.text;
-            
-            // 将事件处理完全移至 JavaScript 中，避免使用 HTML 属性
+
             customItem.addEventListener('click', () => {
                 if (customMenuResult.type === 'translate') {
                     window.open(customMenuResult.value, '_blank');
@@ -968,18 +969,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     hideSugMenu();
                 }
             });
-            
+
             sugMenu.appendChild(customItem);
             hasContent = true;
         }
 
-        const displayList = list.slice(0, 10); 
+        const displayList = list.slice(0, 10);
         if (displayList.length > 0) {
             hasContent = true;
             displayList.forEach((itemText) => {
                 const item = document.createElement('div');
                 item.className = 'sug-item';
-                
+
                 if (searchInput.classList.contains('custom-font')) {
                     item.style.fontFamily = "'MinecraftFont', sans-serif";
                 } else {
@@ -990,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.addEventListener('click', () => {
                     searchInput.value = itemText;
                     hideSugMenu();
-                    searchForm.submit(); 
+                    searchForm.submit();
                 });
 
                 sugMenu.appendChild(item);
@@ -1024,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateSugSelection(items);
         } else if (e.key === 'Enter' && activeSugIndex >= 0) {
             e.preventDefault();
-            items[activeSugIndex].click(); 
+            items[activeSugIndex].click();
         } else if (e.key === 'Escape') {
             hideSugMenu();
         }
@@ -1037,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (item.classList.contains('custom-tool-item')) {
                     searchInput.value = item.getAttribute('data-value');
                 } else {
-                    searchInput.value = item.textContent; 
+                    searchInput.value = item.textContent;
                 }
                 item.scrollIntoView({ block: 'nearest' });
             } else {
@@ -1054,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function debounce(func, wait) {
         let timeout;
-        return function(...args) {
+        return function (...args) {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, args), wait);
         };
@@ -1065,9 +1066,9 @@ function applyNoteBtnVisibility(enabled) {
     const allTextBtn = document.getElementById('alltext');
     if (allTextBtn) {
         if (enabled) {
-            allTextBtn.style.display = 'block'; // 或者 flex，取决于原有样式，这里假设 block 或继承
+            allTextBtn.style.display = 'block';
             allTextBtn.style.visibility = 'visible';
-            allTextBtn.style.opacity = '0.7'; // 恢复默认透明度
+            allTextBtn.style.opacity = '0.7';
         } else {
             allTextBtn.style.display = 'none';
         }
@@ -1077,7 +1078,7 @@ function applyNoteBtnVisibility(enabled) {
 // 更新依赖信任环的控件状态
 function updateTrustRingDependentControls(isTrustRingEnabled) {
     const isDisabled = !isTrustRingEnabled;
-    
+
     if (noteBtnToggle) {
         noteBtnToggle.disabled = isDisabled;
     }
@@ -1114,9 +1115,8 @@ function applyBingWallpaper(enabled) {
     const allTextBtn = document.getElementById('alltext');
     const openSettingsBtn = document.getElementById('openSettingsBtn');
     const sugMenu = document.getElementById('sugMenu');
-    const spotlightGlow = document.getElementById('spotlightGlow'); // 新增：获取光晕元素
+    const spotlightGlow = document.getElementById('spotlightGlow');
 
-    // 定义一个内部函数来更新联想菜单样式，以便复用和响应主题变化
     function updateSugMenuStyle() {
         if (!sugMenu) return;
 
@@ -1124,19 +1124,17 @@ function applyBingWallpaper(enabled) {
         const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
         if (isDarkMode) {
-            // 深色模式：深色半透明背景，白色文字
             sugMenu.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
             sugMenu.style.borderColor = 'rgba(255, 255, 255, 0.2)';
             const items = sugMenu.querySelectorAll('.sug-item');
             items.forEach(item => item.style.color = '#fff');
         } else {
-            // 浅色模式：浅色半透明背景，深色文字
             sugMenu.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
             sugMenu.style.borderColor = 'rgba(0, 0, 0, 0.1)';
             const items = sugMenu.querySelectorAll('.sug-item');
             items.forEach(item => item.style.color = '#333');
         }
-        
+
         // 共同的高斯模糊效果
         sugMenu.style.backdropFilter = 'blur(15px)';
         sugMenu.style.WebkitBackdropFilter = 'blur(15px)';
@@ -1146,7 +1144,6 @@ function applyBingWallpaper(enabled) {
     function handleSearchMouseMove(e) {
         if (!enabled || !spotlightGlow) return;
 
-        // 修改：获取内部包装器的矩形，以便正确计算相对坐标
         const innerWrapper = document.querySelector('.search-inner-wrapper');
         if (!innerWrapper) return;
 
@@ -1154,10 +1151,9 @@ function applyBingWallpaper(enabled) {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        // 设置光晕位置
         spotlightGlow.style.left = `${x}px`;
         spotlightGlow.style.top = `${y}px`;
-        
+
         // 确保光晕可见，并强制重置可能引起闪烁的样式
         spotlightGlow.style.opacity = '1';
         spotlightGlow.style.transform = 'translate(-50%, -50%) scale(1)';
@@ -1188,7 +1184,7 @@ function applyBingWallpaper(enabled) {
             // 移除旧的监听器以防重复绑定
             searchInput.removeEventListener('mousemove', handleSearchMouseMove);
             searchInput.removeEventListener('mouseleave', handleSearchMouseLeave);
-            
+
             searchInput.addEventListener('mousemove', handleSearchMouseMove);
             searchInput.addEventListener('mouseleave', handleSearchMouseLeave);
         }
@@ -1202,12 +1198,12 @@ function applyBingWallpaper(enabled) {
             timeDisplay.style.borderRadius = '';
             timeDisplay.style.padding = '';
             timeDisplay.style.boxShadow = '';
-            
+
             // 添加文字阴影以提高对比度
             timeDisplay.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.5)';
             timeDisplay.style.color = '#fff'; // 确保文字为白色
         }
-        
+
         // 搜索框：变为高斯模糊背景并关闭深浅变换（固定背景色）
         if (searchInput) {
             searchInput.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
@@ -1216,7 +1212,7 @@ function applyBingWallpaper(enabled) {
             searchInput.style.borderColor = 'rgba(255, 255, 255, 0.3)';
             searchInput.style.color = '#fff'; // 强制白色文字以确保对比度
             searchInput.style.setProperty('--input-text', '#fff');
-            
+
             // 动态注入样式以修改 placeholder 颜色
             let styleId = 'bing-wallpaper-placeholder-style';
             let styleEl = document.getElementById(styleId);
@@ -1233,8 +1229,8 @@ function applyBingWallpaper(enabled) {
             `;
 
             // 移除 hover/focus 的默认背景变化，保持模糊感
-            searchInput.onfocus = function() { this.style.backgroundColor = 'rgba(255, 255, 255, 0.35)'; };
-            searchInput.onblur = function() { this.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; };
+            searchInput.onfocus = function () { this.style.backgroundColor = 'rgba(255, 255, 255, 0.35)'; };
+            searchInput.onblur = function () { this.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'; };
         }
 
         // 诗词：仅对文字部分应用模糊背景
@@ -1246,7 +1242,7 @@ function applyBingWallpaper(enabled) {
             poetryBox.style.borderRadius = '0';
             poetryBox.style.padding = '0 20px'; // 保持原有的左右内边距以维持布局宽度，但上下由内部元素控制
             poetryBox.style.boxShadow = 'none';
-            
+
             // 定义文字部分的模糊样式
             const poetryBlurStyle = {
                 backgroundColor: 'rgba(0, 0, 0, 0.2)',
@@ -1283,17 +1279,16 @@ function applyBingWallpaper(enabled) {
             }
         }
 
-        // 优化：天气组件移除背景模糊，改为文字阴影
         if (weatherWidget) {
             weatherWidget.style.backgroundColor = 'transparent';
             weatherWidget.style.backdropFilter = 'none';
             weatherWidget.style.WebkitBackdropFilter = 'none';
             weatherWidget.style.borderRadius = '0';
             weatherWidget.style.padding = '0';
-            
+
             const icon = weatherWidget.querySelector('i');
             const text = weatherWidget.querySelector('span');
-            
+
             if (icon) {
                 icon.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.5)';
                 icon.style.color = '#fff';
@@ -1309,10 +1304,10 @@ function applyBingWallpaper(enabled) {
             allTextBtn.style.backdropFilter = 'blur(10px)';
             allTextBtn.style.WebkitBackdropFilter = 'blur(10px)';
             allTextBtn.style.borderRadius = '50%';
-            allTextBtn.style.padding = '0'; // 移除 padding，改用固定宽高
-            allTextBtn.style.width = '40px'; // 设置固定宽度
-            allTextBtn.style.height = '40px'; // 设置固定高度
-            allTextBtn.style.display = 'flex'; // 使用 flex 居中图标
+            allTextBtn.style.padding = '0';
+            allTextBtn.style.width = '40px';
+            allTextBtn.style.height = '40px';
+            allTextBtn.style.display = 'flex';
             allTextBtn.style.justifyContent = 'center';
             allTextBtn.style.alignItems = 'center';
             allTextBtn.style.color = '#fff';
@@ -1322,10 +1317,10 @@ function applyBingWallpaper(enabled) {
             openSettingsBtn.style.backdropFilter = 'blur(10px)';
             openSettingsBtn.style.WebkitBackdropFilter = 'blur(10px)';
             openSettingsBtn.style.borderRadius = '50%';
-            openSettingsBtn.style.padding = '0'; // 移除 padding，改用固定宽高
-            openSettingsBtn.style.width = '40px'; // 设置固定宽度
-            openSettingsBtn.style.height = '40px'; // 设置固定高度
-            openSettingsBtn.style.display = 'flex'; // 使用 flex 居中图标
+            openSettingsBtn.style.padding = '0';
+            openSettingsBtn.style.width = '40px';
+            openSettingsBtn.style.height = '40px';
+            openSettingsBtn.style.display = 'flex';
             openSettingsBtn.style.justifyContent = 'center';
             openSettingsBtn.style.alignItems = 'center';
             openSettingsBtn.style.color = '#fff';
@@ -1334,14 +1329,11 @@ function applyBingWallpaper(enabled) {
         // 联想词菜单：应用动态主题样式
         if (sugMenu) {
             updateSugMenuStyle();
-            
-            // 监听系统主题变化，实时更新菜单样式
+
             if (window.matchMedia) {
-                // 移除旧的监听器
                 if (window._bingWallpaperThemeListener) {
                     window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', window._bingWallpaperThemeListener);
                 }
-                // 创建新的监听器并保存引用
                 window._bingWallpaperThemeListener = () => {
                     if (bingWallpaperToggle && bingWallpaperToggle.checked) {
                         updateSugMenuStyle();
@@ -1356,12 +1348,12 @@ function applyBingWallpaper(enabled) {
         bgElement.style.display = 'none';
         bgElement.style.backgroundImage = '';
 
-        // 新增：移除鼠标移动事件监听器
+        // 移除鼠标移动事件监听器
         if (searchInput) {
             searchInput.removeEventListener('mousemove', handleSearchMouseMove);
             searchInput.removeEventListener('mouseleave', handleSearchMouseLeave);
         }
-        
+
         // 修复点光源效果在壁纸功能关闭后仍然存在的问题
         if (spotlightGlow) {
             // 强制隐藏并重置样式
@@ -1372,7 +1364,7 @@ function applyBingWallpaper(enabled) {
             spotlightGlow.style.backgroundColor = '';
             spotlightGlow.style.mixBlendMode = '';
             // 使用 cssText = '' 清除所有内联样式，确保完全恢复 CSS 类定义的默认状态
-            spotlightGlow.style.cssText = ''; 
+            spotlightGlow.style.cssText = '';
         }
 
         // 清除内联样式以恢复 CSS 变量控制
@@ -1384,7 +1376,7 @@ function applyBingWallpaper(enabled) {
             searchInput.onfocus = null;
             searchInput.onblur = null;
         }
-        
+
         // 移除动态注入的 placeholder 样式
         let styleEl = document.getElementById('bing-wallpaper-placeholder-style');
         if (styleEl) {
@@ -1395,7 +1387,7 @@ function applyBingWallpaper(enabled) {
         // 新增：清除诗词文字部分的内联样式
         if (poetryContent) poetryContent.style.cssText = '';
         if (poetryAuthor) poetryAuthor.style.cssText = '';
-        
+
         if (pageFooter) {
             pageFooter.style.cssText = '';
             pageFooter.style.width = '100%';
@@ -1412,14 +1404,14 @@ function applyBingWallpaper(enabled) {
         }
         if (allTextBtn) allTextBtn.style.cssText = '';
         if (openSettingsBtn) openSettingsBtn.style.cssText = '';
-        
+
         if (sugMenu) {
             sugMenu.style.backgroundColor = '';
             sugMenu.style.borderColor = '';
             sugMenu.style.backdropFilter = '';
             sugMenu.style.WebkitBackdropFilter = '';
             sugMenu.style.boxShadow = '';
-            
+
             const items = sugMenu.querySelectorAll('.sug-item');
             items.forEach(item => {
                 item.style.color = '';
