@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yuyupage Update</title>
+    <link rel="stylesheet" href="../source/font-awesome/css/all.min.css">
     <style>
         :root {
             --bg-color: #fbfeff;
@@ -155,6 +156,11 @@
             <p class="message" style="text-align: center;">无法获取您所使用的版本，请稍后再试。</p> <button class="btn"
                 onclick="closeWindow()">确定</button>
         </div>
+        <div id="stop-view" class="hidden">
+            <h1>需要更新</h1>
+            <p class="message" style="text-align: center;">发现新版本可用。</p>
+            <p class="message" style="text-align: left;"><i class="fa-solid fa-circle-info" style="margin-right: 6px; color: var(--primary-color);"></i>新版本无法通过本页面下载，请在 Github 仓库查看 Release 或等待扩展商店更新</p>
+        </div>
         <div id="error-view" class="hidden">
             <h1>检查失败</h1>
             <p class="message" style="text-align: center;">无法获取版本信息，请稍后重试。</p>
@@ -200,14 +206,17 @@
                 const rawVersion = versionData.latestVersion || versionData.version || versionData;
                 const latestVer = parseInt(rawVersion, 10);
 
+                if (isNaN(latestVer)) throw new Error('Invalid version data');
+
                 if (String(versionData.debugsys) === '1') {
-                    console.error('Request timeout.');
                     loadingEl.classList.add('hidden');
-                    document.getElementById('error-view').classList.remove('hidden');
+                    if (currentVer >= latestVer) {
+                        document.getElementById('up-to-date-view').classList.remove('hidden');
+                    } else {
+                        document.getElementById('stop-view').classList.remove('hidden');
+                    }
                     return;
                 }
-
-                if (isNaN(latestVer)) throw new Error('Invalid version data');
 
                 const upToDateEl = document.getElementById('up-to-date-view');
                 const updateRequiredEl = document.getElementById('update-required-view');
