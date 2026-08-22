@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Hello ~</title>
+    <script src="./source/css/tailwind.min.css"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000000;
+        }
+        #dotCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .control-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 10, 0.75);
+            backdrop-filter: blur(8px);
+            padding: 12px 24px;
+            border-radius: 60px;
+            border: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            z-index: 20;
+            pointer-events: auto;
+            font-family: system-ui, -apple-system, sans-serif;
+            transition: opacity 0.3s ease;
+        }
+        .control-bar label {
+            color: #ccc;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+        }
+        .control-bar input {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 40px;
+            padding: 8px 18px;
+            color: #fff;
+            font-size: 1rem;
+            min-width: 180px;
+            outline: none;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+        .control-bar input:focus {
+            border-color: #7a7a7a;
+        }
+        .control-bar button {
+            background: #2c2c2c;
+            border: none;
+            color: #f0f0f0;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            letter-spacing: 0.3px;
+        }
+        .control-bar button:hover {
+            background: #3f3f3f;
+        }
+        .control-bar button:active {
+            transform: scale(0.95);
+        }
+        @media (max-width: 640px) {
+            .control-bar {
+                padding: 10px 16px;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 90%;
+                border-radius: 30px;
+            }
+            .control-bar input {
+                min-width: 120px;
+                flex: 1;
+            }
+        }
+        .no-click {
+            cursor: default;
+        }
+        .control-bar.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="dotCanvas"></canvas>
+
+    <div class="control-bar" id="controlBar">
+        <label for="textInput">点阵文字</label>
+        <input type="text" id="textInput" value="点阵" placeholder="输入任意文字或符号">
+        <button id="renderBtn">渲染</button>
+    </div>
+
+    <script>
+        (function() {
+            const MODE = "normal"; // demo/normal/design/debug
+
+            const DEMO_CONTENTS = [
+                "Hello World!",
+                "(/^▽^)/",
+                "(￣ω￣;)",
+                "（＾～＾）",
+                "~(＾◇^)/",
+                "۹( ÒہÓ )۶",
+                "(O∆O)",
+                "(#^.^#)",
+                "U ´x` U"
+            ];
+
+            const canvas = document.getElementById('dotCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const dotRadius = 6;
+            const gap = 14;
+            const offColor = "#121212";
+            const onColor = "#ffffff";
+
+            let cols, rows;
+            let dotMatrix = [];
+
+            const textInput = document.getElementById('textInput');
+            const renderBtn = document.getElementById('renderBtn');
+            const controlBar = document.getElementById('controlBar');
+
+            const TABLET_MIN_WIDTH = 768;
+            let mobileAlertShown = false;
+
+            function isMobileOrTablet() {
+                return window.innerWidth < TABLET_MIN_WIDTH;
+            }
+
+            function showMobileAlert() {
+                if (!mobileAlertShown && isMobileOrTablet()) {
+                    mobileAlertShown = true;
+                    alert("请使用宽屏设备或电脑访问本页面。");
+                }
+            }
+
+            function renderTextOnDots(text) {
+                if (isMobileOrTablet()) {
+                    text = "!";
+                    showMobileAlert();
+                }
+
+                if (!text || text.length === 0) {
+                    for (let y = 0; y < rows; y++) {
+                        for (let x = 0; x < cols; x++) {
+                            dotMatrix[y][x] = false;
+                        }
+                    }
+                    drawGrid();
+                    return;
+                }
+
+                const offscreen = document.createElement('canvas');
+                offscreen.width = canvas.width;
+                offscreen.height = canvas.height;
+                const offCtx = offscreen.getContext('2d');
+
+                offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+
+                const maxWidth = canvas.width * 0.9;
+                const maxHeight = canvas.height * 0.9;
+                let fontSize = Math.min(canvas.width, canvas.height) * 0.3;
+                offCtx.textAlign = 'center';
+                offCtx.textBaseline = 'middle';
+
+                const measureText = (size) => {
+                    offCtx.font = `bold ${size}px "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif`;
+                    const metrics = offCtx.measureText(text);
+                    const textWidth = metrics.width;
+                    const textHeight = size * 1.2;
+                    return { width: textWidth, height: textHeight };
+                };
+
+                let bestSize = Math.min(canvas.width, canvas.height) * 0.4;
+                let step = 2;
+                let attempts = 0;
+                for (let size = bestSize; size > 10; size -= step) {
+                    const { width, height } = measureText(size);
+                    if (width <= maxWidth && height <= maxHeight) {
+                        bestSize = size;
+                        break;
+                    }
+                    attempts++;
+                    if (attempts > 200) break;
+                }
+
+                if (bestSize < 14) bestSize = 14;
+
+                offCtx.font = `bold ${bestSize}px "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif`;
+                const cx = offscreen.width / 2;
+                const cy = offscreen.height / 2;
+                offCtx.fillStyle = '#ffffff';
+                offCtx.shadowColor = 'transparent';
+                offCtx.fillText(text, cx, cy);
+
+                const imageData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
+                const data = imageData.data;
+
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const px = x * gap + gap / 2;
+                        const py = y * gap + gap / 2;
+                        const ix = Math.floor(px);
+                        const iy = Math.floor(py);
+                        if (ix < 0 || ix >= offscreen.width || iy < 0 || iy >= offscreen.height) {
+                            dotMatrix[y][x] = false;
+                            continue;
+                        }
+                        const index = (iy * offscreen.width + ix) * 4;
+                        const isWhite = data[index] > 128;
+                        dotMatrix[y][x] = isWhite;
+                    }
+                }
+
+                drawGrid();
+            }
+
+            function drawGrid() {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const px = x * gap + gap / 2;
+                        const py = y * gap + gap / 2;
+                        ctx.beginPath();
+                        ctx.arc(px, py, dotRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = dotMatrix[y][x] ? onColor : offColor;
+                        ctx.fill();
+                    }
+                }
+            }
+
+            let demoInterval = null;
+            let currentDemoIndex = 0;
+
+            function startDemoRotation() {
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                    demoInterval = null;
+                }
+                currentDemoIndex = 0;
+                if (DEMO_CONTENTS.length > 0) {
+                    renderTextOnDots(DEMO_CONTENTS[0]);
+                }
+                demoInterval = setInterval(function() {
+                    currentDemoIndex = (currentDemoIndex + 1) % DEMO_CONTENTS.length;
+                    const nextText = DEMO_CONTENTS[currentDemoIndex];
+                    renderTextOnDots(nextText);
+                }, 5000);
+            }
+
+            function stopDemoRotation() {
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                    demoInterval = null;
+                }
+            }
+
+            function setupDesignMode() {
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        dotMatrix[y][x] = false;
+                    }
+                }
+                drawGrid();
+            }
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                cols = Math.floor(canvas.width / gap);
+                rows = Math.floor(canvas.height / gap);
+                dotMatrix = Array(rows).fill().map(() => Array(cols).fill(false));
+
+                if (MODE === "debug") {
+                    const currentText = textInput.value || '点阵';
+                    renderTextOnDots(currentText);
+                } else if (MODE === "demo") {
+                    if (!demoInterval) {
+                        startDemoRotation();
+                    } else {
+                        const currentText = DEMO_CONTENTS[currentDemoIndex] || DEMO_CONTENTS[0];
+                        renderTextOnDots(currentText);
+                    }
+                } else if (MODE === "design") {
+                    setupDesignMode();
+                } else if (MODE === "normal") {
+                    renderTextOnDots("Hello ~");
+                }
+            }
+
+            function handleCanvasClick(e) {
+                if (MODE !== "design") {
+                    return;
+                }
+
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                const xIndex = Math.floor(mx / gap);
+                const yIndex = Math.floor(my / gap);
+                if (xIndex >= 0 && xIndex < cols && yIndex >= 0 && yIndex < rows) {
+                    dotMatrix[yIndex][xIndex] = !dotMatrix[yIndex][xIndex];
+                    drawGrid();
+                }
+            }
+
+            canvas.addEventListener('mousedown', handleCanvasClick);
+
+            window.addEventListener('resize', function() {
+                resizeCanvas();
+            });
+
+            if (MODE === "debug") {
+                controlBar.classList.remove('hidden');
+                renderBtn.addEventListener('click', function() {
+                    const text = textInput.value;
+                    renderTextOnDots(text);
+                    stopDemoRotation();
+                });
+
+                textInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        renderTextOnDots(textInput.value);
+                        stopDemoRotation();
+                        e.preventDefault();
+                    }
+                });
+
+                textInput.addEventListener('blur', function() {
+                    renderTextOnDots(textInput.value);
+                    stopDemoRotation();
+                });
+
+                stopDemoRotation();
+            } else if (MODE === "demo") {
+                controlBar.classList.add('hidden');
+                stopDemoRotation();
+                startDemoRotation();
+            } else if (MODE === "design") {
+                controlBar.classList.add('hidden');
+                stopDemoRotation();
+                setupDesignMode();
+            } else if (MODE === "normal") {
+                controlBar.classList.add('hidden');
+                stopDemoRotation();
+                renderTextOnDots("Hello ~");
+            }
+
+            resizeCanvas();
+
+            setTimeout(() => {
+                if (MODE === "debug") {
+                    renderTextOnDots(textInput.value || '点阵');
+                } else if (MODE === "demo") {
+                    if (!demoInterval) {
+                        startDemoRotation();
+                    }
+                } else if (MODE === "design") {
+                    setupDesignMode();
+                } else if (MODE === "normal") {
+                    renderTextOnDots("Hello ~");
+                }
+            }, 20);
+
+            window.renderTextOnDots = renderTextOnDots;
+            window.MODE = MODE;
+            window.startDemoRotation = startDemoRotation;
+            window.stopDemoRotation = stopDemoRotation;
+            window.setupDesignMode = setupDesignMode;
+        })();
+    </script>
+</body>
+</html>
