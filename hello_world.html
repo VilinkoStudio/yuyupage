@@ -5,24 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <title>Hello ~</title>
-    <script src="./source/css/tailwind.min.css"></script>
+    <script src="./source/js/tailwind.min.css"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         html, body {
             width: 100vw;
             height: 100vh;
             overflow: hidden;
             background: #000000;
+            -webkit-tap-highlight-color: transparent;
         }
         #dotCanvas {
             width: 100%;
             height: 100%;
             display: block;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
         .control-bar {
             position: absolute;
@@ -42,12 +45,14 @@
             pointer-events: auto;
             font-family: system-ui, -apple-system, sans-serif;
             transition: opacity 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
         .control-bar label {
             color: #ccc;
             font-size: 0.9rem;
             letter-spacing: 0.3px;
             font-weight: 400;
+            -webkit-tap-highlight-color: transparent;
         }
         .control-bar input {
             background: #1a1a1a;
@@ -60,6 +65,7 @@
             outline: none;
             transition: border 0.2s;
             font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
         }
         .control-bar input:focus {
             border-color: #7a7a7a;
@@ -75,6 +81,10 @@
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
             letter-spacing: 0.3px;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .control-bar button:hover {
             background: #3f3f3f;
@@ -116,7 +126,7 @@
 
     <script>
         (function() {
-            const MODE = "debug"; // demo轮换模式/normal固定文本/design自由绘制/debug输入控制
+            const MODE = "debug"; // demo轮换模式/normal固定文本/design自由绘制/debug输入控制/loading加载动画
 
             const DEMO_CONTENTS = [
                 "Hello World!",
@@ -133,8 +143,8 @@
             const canvas = document.getElementById('dotCanvas');
             const ctx = canvas.getContext('2d');
 
-            const dotRadius = 6;
-            const gap = 14;
+            const dotRadius = 3;
+            const gap = 8;
             const offColor = "#121212";
             const onColor = "#ffffff";
 
@@ -147,6 +157,11 @@
 
             const TABLET_MIN_WIDTH = 768;
             let mobileAlertShown = false;
+
+            let loadingAnimationId = null;
+            let loadingRadius = 0;
+            let loadingMaxRadius = 0;
+            let isAnimating = false;
 
             function isMobileOrTablet() {
                 return window.innerWidth < TABLET_MIN_WIDTH;
@@ -256,6 +271,70 @@
                 }
             }
 
+            function drawLoadingRipple() {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const px = x * gap + gap / 2;
+                        const py = y * gap + gap / 2;
+                        const dx = px - centerX;
+                        const dy = py - centerY;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        let isLit = false;
+                        const ringWidth = 12;
+                        if (dist <= loadingRadius && dist > loadingRadius - ringWidth) {
+                            isLit = true;
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(px, py, dotRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = isLit ? onColor : offColor;
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function startLoadingAnimation() {
+                if (loadingAnimationId) {
+                    cancelAnimationFrame(loadingAnimationId);
+                    loadingAnimationId = null;
+                }
+
+                loadingRadius = 0;
+                loadingMaxRadius = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height) / 2;
+                isAnimating = true;
+
+                function animateLoading() {
+                    loadingRadius += 1.2;
+
+                    if (loadingRadius > loadingMaxRadius + 30) {
+                        loadingRadius = 0;
+                        isAnimating = false;
+                        drawGrid();
+                        return;
+                    }
+
+                    drawLoadingRipple();
+                    loadingAnimationId = requestAnimationFrame(animateLoading);
+                }
+
+                animateLoading();
+            }
+
+            function stopLoadingAnimation() {
+                if (loadingAnimationId) {
+                    cancelAnimationFrame(loadingAnimationId);
+                    loadingAnimationId = null;
+                }
+                isAnimating = false;
+            }
+
             let demoInterval = null;
             let currentDemoIndex = 0;
 
@@ -312,10 +391,19 @@
                     setupDesignMode();
                 } else if (MODE === "normal") {
                     renderTextOnDots("Hello ~");
+                } else if (MODE === "loading") {
+                    stopLoadingAnimation();
+                    drawGrid();
                 }
             }
 
             function handleCanvasClick(e) {
+                if (MODE === "loading") {
+                    if (!isAnimating) {
+                        startLoadingAnimation();
+                    }
+                    return;
+                }
                 if (MODE !== "design") {
                     return;
                 }
@@ -359,18 +447,27 @@
                 });
 
                 stopDemoRotation();
+                stopLoadingAnimation();
             } else if (MODE === "demo") {
                 controlBar.classList.add('hidden');
                 stopDemoRotation();
+                stopLoadingAnimation();
                 startDemoRotation();
             } else if (MODE === "design") {
                 controlBar.classList.add('hidden');
                 stopDemoRotation();
+                stopLoadingAnimation();
                 setupDesignMode();
             } else if (MODE === "normal") {
                 controlBar.classList.add('hidden');
                 stopDemoRotation();
+                stopLoadingAnimation();
                 renderTextOnDots("Hello ~");
+            } else if (MODE === "loading") {
+                controlBar.classList.add('hidden');
+                stopDemoRotation();
+                stopLoadingAnimation();
+                drawGrid();
             }
 
             resizeCanvas();
@@ -386,6 +483,8 @@
                     setupDesignMode();
                 } else if (MODE === "normal") {
                     renderTextOnDots("Hello ~");
+                } else if (MODE === "loading") {
+                    drawGrid();
                 }
             }, 20);
 
@@ -394,6 +493,8 @@
             window.startDemoRotation = startDemoRotation;
             window.stopDemoRotation = stopDemoRotation;
             window.setupDesignMode = setupDesignMode;
+            window.startLoadingAnimation = startLoadingAnimation;
+            window.stopLoadingAnimation = stopLoadingAnimation;
         })();
     </script>
 </body>
