@@ -1,32 +1,344 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>Yuyupage</title>
+    <script src="./source/js/tailwind.min.css"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
+        html,
         body {
-            background-color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000000;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .footer-text {
-            color: #4a4a4a;
-            font-size: 13px;
+        #dotCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 10, 0.75);
+            backdrop-filter: blur(8px);
+            padding: 12px 24px;
+            border-radius: 60px;
+            border: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+            z-index: 20;
+            pointer-events: auto;
+            font-family: system-ui, -apple-system, sans-serif;
+            transition: opacity 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-bar label {
+            color: #ccc;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-bar input {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 40px;
+            padding: 8px 18px;
+            color: #fff;
+            font-size: 1rem;
+            min-width: 180px;
+            outline: none;
+            transition: border 0.2s;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-bar input:focus {
+            border-color: #7a7a7a;
+        }
+
+        .control-bar button {
+            background: #2c2c2c;
+            border: none;
+            color: #f0f0f0;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            letter-spacing: 0.3px;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .control-bar button:hover {
+            background: #3f3f3f;
+        }
+
+        .control-bar button:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 640px) {
+            .control-bar {
+                padding: 10px 16px;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 90%;
+                border-radius: 30px;
+            }
+
+            .control-bar input {
+                min-width: 120px;
+                flex: 1;
+            }
+        }
+
+        .no-click {
+            cursor: default;
+        }
+
+        .control-bar.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
     </style>
 </head>
+
 <body>
-    <p class="footer-text">We Meet, Inspire, Create.</p>
+    <canvas id="dotCanvas"></canvas>
+
+    <div class="control-bar hidden" id="controlBar">
+        <label for="textInput">文字</label>
+        <input type="text" id="textInput" value="点阵" placeholder="输入任意文字或符号">
+        <button id="renderBtn">显示</button>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('dotCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const dotRadius = 3;
+            const gap = 8;
+            const offColor = "#121212";
+            const onColor = "#ffffff";
+
+            let cols, rows;
+            let dotMatrix = [];
+
+            let currentText = "( ´ ▽ ` )ﾉ";
+            let lastInteractionTime = Date.now();
+            let clickCount = 0;
+            let clickTimer = null;
+            let isSleeping = false;
+            let sleepTimer = null;
+            let singleClickIndex = 0;
+
+            const SLEEP_DELAY = 5000;
+
+            const SLEEP_TEXTS = ['［(－－)］zzz', '(。-ω-)zzz', '(-_-) zzz'];
+            const SINGLE_CLICK_TEXTS = [
+                '(¬_¬)',
+                'ﾉ(#^.^#)',
+                '（￣～￣;）',
+                'ヽ( ´¬`)ノ',
+                '(￣^￣)ヘ',
+                '(￣ω￣ヘ)',
+                'd(-_^)'
+            ];
+
+            function getRandomItem(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            }
+
+            function renderTextOnDots(text) {
+                if (!text || text.length === 0) {
+                    for (let y = 0; y < rows; y++) {
+                        for (let x = 0; x < cols; x++) {
+                            dotMatrix[y][x] = false;
+                        }
+                    }
+                    drawGrid();
+                    return;
+                }
+
+                const offscreen = document.createElement('canvas');
+                offscreen.width = canvas.width;
+                offscreen.height = canvas.height;
+                const offCtx = offscreen.getContext('2d');
+
+                offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+
+                const maxWidth = canvas.width * 0.9;
+                const maxHeight = canvas.height * 0.9;
+                let fontSize = Math.min(canvas.width, canvas.height) * 0.3;
+                offCtx.textAlign = 'center';
+                offCtx.textBaseline = 'middle';
+
+                const measureText = (size) => {
+                    offCtx.font = `bold ${size}px "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif`;
+                    const metrics = offCtx.measureText(text);
+                    const textWidth = metrics.width;
+                    const textHeight = size * 1.2;
+                    return { width: textWidth, height: textHeight };
+                };
+
+                let bestSize = Math.min(canvas.width, canvas.height) * 0.4;
+                let step = 2;
+                let attempts = 0;
+                for (let size = bestSize; size > 10; size -= step) {
+                    const { width, height } = measureText(size);
+                    if (width <= maxWidth && height <= maxHeight) {
+                        bestSize = size;
+                        break;
+                    }
+                    attempts++;
+                    if (attempts > 200) break;
+                }
+
+                if (bestSize < 14) bestSize = 14;
+
+                offCtx.font = `bold ${bestSize}px "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif`;
+                const cx = offscreen.width / 2;
+                const cy = offscreen.height / 2;
+                offCtx.fillStyle = '#ffffff';
+                offCtx.shadowColor = 'transparent';
+                offCtx.fillText(text, cx, cy);
+
+                const imageData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
+                const data = imageData.data;
+
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const px = x * gap + gap / 2;
+                        const py = y * gap + gap / 2;
+                        const ix = Math.floor(px);
+                        const iy = Math.floor(py);
+                        if (ix < 0 || ix >= offscreen.width || iy < 0 || iy >= offscreen.height) {
+                            dotMatrix[y][x] = false;
+                            continue;
+                        }
+                        const index = (iy * offscreen.width + ix) * 4;
+                        const isWhite = data[index] > 128;
+                        dotMatrix[y][x] = isWhite;
+                    }
+                }
+
+                drawGrid();
+            }
+
+            function drawGrid() {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const px = x * gap + gap / 2;
+                        const py = y * gap + gap / 2;
+                        ctx.beginPath();
+                        ctx.arc(px, py, dotRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = dotMatrix[y][x] ? onColor : offColor;
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function updateDisplay(text) {
+                currentText = text;
+                lastInteractionTime = Date.now();
+                isSleeping = false;
+                if (sleepTimer) {
+                    clearTimeout(sleepTimer);
+                    sleepTimer = null;
+                }
+                renderTextOnDots(text);
+                resetSleepTimer();
+            }
+
+            function resetSleepTimer() {
+                if (sleepTimer) {
+                    clearTimeout(sleepTimer);
+                    sleepTimer = null;
+                }
+                sleepTimer = setTimeout(() => {
+                    isSleeping = true;
+                    const sleepText = getRandomItem(SLEEP_TEXTS);
+                    currentText = sleepText;
+                    renderTextOnDots(sleepText);
+                }, SLEEP_DELAY);
+            }
+
+            function handleClick(e) {
+                clickCount++;
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                }
+                clickTimer = setTimeout(() => {
+                    let text;
+                    if (clickCount < 4) {
+                        text = SINGLE_CLICK_TEXTS[singleClickIndex % SINGLE_CLICK_TEXTS.length];
+                        singleClickIndex++;
+                    } else if (clickCount >= 4 && clickCount < 7) {
+                        text = '(¬_¬)ﾉ';
+                    } else if (clickCount >= 7) {
+                        text = getRandomItem(['(｀д´)ゝ', '┗(｀o ´)┓']);
+                    }
+                    updateDisplay(text);
+                    clickCount = 0;
+                    clickTimer = null;
+                }, 300);
+            }
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                cols = Math.floor(canvas.width / gap);
+                rows = Math.floor(canvas.height / gap);
+                dotMatrix = Array(rows).fill().map(() => Array(cols).fill(false));
+                renderTextOnDots(currentText);
+            }
+
+            canvas.addEventListener('click', handleClick);
+
+            window.addEventListener('resize', function() {
+                resizeCanvas();
+            });
+
+            resizeCanvas();
+
+            resetSleepTimer();
+
+            window.renderTextOnDots = renderTextOnDots;
+            window.updateDisplay = updateDisplay;
+        })();
+    </script>
 </body>
+
 </html>

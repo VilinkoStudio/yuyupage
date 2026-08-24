@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +14,16 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        html, body {
+
+        html,
+        body {
             width: 100vw;
             height: 100vh;
             overflow: hidden;
             background: #000000;
             -webkit-tap-highlight-color: transparent;
         }
+
         #dotCanvas {
             width: 100%;
             height: 100%;
@@ -27,6 +31,7 @@
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
+
         .control-bar {
             position: absolute;
             bottom: 30px;
@@ -40,13 +45,14 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
             z-index: 20;
             pointer-events: auto;
             font-family: system-ui, -apple-system, sans-serif;
             transition: opacity 0.3s ease;
             -webkit-tap-highlight-color: transparent;
         }
+
         .control-bar label {
             color: #ccc;
             font-size: 0.9rem;
@@ -54,6 +60,7 @@
             font-weight: 400;
             -webkit-tap-highlight-color: transparent;
         }
+
         .control-bar input {
             background: #1a1a1a;
             border: 1px solid #3a3a3a;
@@ -67,9 +74,11 @@
             font-family: inherit;
             -webkit-tap-highlight-color: transparent;
         }
+
         .control-bar input:focus {
             border-color: #7a7a7a;
         }
+
         .control-bar button {
             background: #2c2c2c;
             border: none;
@@ -86,12 +95,15 @@
             -webkit-user-select: none;
             user-select: none;
         }
+
         .control-bar button:hover {
             background: #3f3f3f;
         }
+
         .control-bar button:active {
             transform: scale(0.95);
         }
+
         @media (max-width: 640px) {
             .control-bar {
                 padding: 10px 16px;
@@ -101,20 +113,24 @@
                 width: 90%;
                 border-radius: 30px;
             }
+
             .control-bar input {
                 min-width: 120px;
                 flex: 1;
             }
         }
+
         .no-click {
             cursor: default;
         }
+
         .control-bar.hidden {
             opacity: 0;
             pointer-events: none;
         }
     </style>
 </head>
+
 <body>
     <canvas id="dotCanvas"></canvas>
 
@@ -125,19 +141,21 @@
     </div>
 
     <script>
-        (function() {
+        (function () {
             const MODE = "debug"; // demo轮换模式/normal固定文本/design自由绘制/debug输入控制/loading加载动画
 
             const DEMO_CONTENTS = [
-                "Hello World!",
-                "(/^▽^)/",
-                "(￣ω￣;)",
-                "（＾～＾）",
-                "~(＾◇^)/",
-                "۹( ÒہÓ )۶",
-                "(O∆O)",
-                "(#^.^#)",
-                "U ´x` U"
+                "Hello", "你好", "Hola", "Bonjour", "Hallo", "Ciao", "Olá",
+                "Привет", "مرحبا", "שלום", "Merhaba", "Salam",
+                "Sawubona", "Jambo", "Hallå", "Hei", "Hej",
+                "Tere", "Sveiki", "Labas", "Dzień dobry", "Ahoj",
+                "Zdravo", "Здравей", "Salut", "Γεια σου", "Namaste",
+                "నమస్కారం", "ನಮಸ್ಕಾರ", "வணக்கம்", "സ്വാഗതം", "সুপ্রভাত",
+                "ਸਤ ਸ੍ਰੀ ਅਕਾਲ", "નમસ્કાર", "नमस्कार", "ନମସ୍କାର",
+                "ສະບາຍດີ", "สวัสดี", "မင်္ဂလာပါ", "សួស្តី", "Xin chào",
+                "こんにちは", "안녕하세요", "Aloha", "Kia ora",
+                "Yá'át'ééh", "Bonjou", "Moni", "Mbote", "Habari",
+                "Talofa", "Mālō", "Ni sa bula", "Aaniin", "Héllo"
             ];
 
             const canvas = document.getElementById('dotCanvas');
@@ -347,11 +365,11 @@
                 if (DEMO_CONTENTS.length > 0) {
                     renderTextOnDots(DEMO_CONTENTS[0]);
                 }
-                demoInterval = setInterval(function() {
+                demoInterval = setInterval(function () {
                     currentDemoIndex = (currentDemoIndex + 1) % DEMO_CONTENTS.length;
                     const nextText = DEMO_CONTENTS[currentDemoIndex];
                     renderTextOnDots(nextText);
-                }, 5000);
+                }, 2000);
             }
 
             function stopDemoRotation() {
@@ -421,19 +439,19 @@
 
             canvas.addEventListener('mousedown', handleCanvasClick);
 
-            window.addEventListener('resize', function() {
+            window.addEventListener('resize', function () {
                 resizeCanvas();
             });
 
             if (MODE === "debug") {
                 controlBar.classList.remove('hidden');
-                renderBtn.addEventListener('click', function() {
+                renderBtn.addEventListener('click', function () {
                     const text = textInput.value;
                     renderTextOnDots(text);
                     stopDemoRotation();
                 });
 
-                textInput.addEventListener('keydown', function(e) {
+                textInput.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') {
                         renderTextOnDots(textInput.value);
                         stopDemoRotation();
@@ -441,7 +459,7 @@
                     }
                 });
 
-                textInput.addEventListener('blur', function() {
+                textInput.addEventListener('blur', function () {
                     renderTextOnDots(textInput.value);
                     stopDemoRotation();
                 });
@@ -498,4 +516,5 @@
         })();
     </script>
 </body>
+
 </html>
