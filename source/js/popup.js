@@ -46,9 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
   updateBtn.addEventListener('click', function() {
     // 已发现新版本：点击跳转下载/发布页并复位
     if (newVersion) {
-      const url = newVersion.type === 'extension'
-        ? 'https://raw.githubusercontent.com/VilinkoStudio/yuyupage/refs/heads/crx/' + newVersion.value + '.zip'
-        : 'https://github.com/VilinkoStudio/yuyupage/releases/tag/' + newVersion.value;
+      let url;
+      if (newVersion.type === 'extension') {
+        // Extension
+        url = 'https://microsoftedge.microsoft.com/addons/detail/yuyupage/jmblheegbnfookcfcjmbiclnnpkcamlg';
+      } else if (newVersion.type === 'github') {
+        // GitHub
+        url = 'https://raw.githubusercontent.com/VilinkoStudio/yuyupage/refs/heads/crx/' + newVersion.value + '.zip';
+      }
       chrome.tabs.create({ url: url });
       newVersion = null;
       updateBtn.textContent = ORIGINAL_TEXT;
@@ -62,12 +67,21 @@ document.addEventListener('DOMContentLoaded', function() {
     updateBtn.classList.add('checking');
     updateBtn.textContent = '检查中...';
 
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeoutId = setTimeout(function() {
+      timedOut = true;
+      controller.abort();
+      updateBtn.classList.remove('checking');
+      showTemporary('请求超时', 5000);
+    }, 40000);
+
     // 从 manifest 获取当前版本与 info 类型
     const manifest = chrome.runtime.getManifest();
     const currentVersion = manifest.version;
     const infoType = manifest.info;
 
-    fetch(UPDATE_URL)
+    fetch(UPDATE_URL, { signal: controller.signal })
       .then(function(res) {
         if (!res.ok) {
           throw new Error('HTTP ' + res.status);
@@ -94,9 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       })
       .catch(function() {
-        showTemporary('检查失败', 3000);
+        if (!timedOut) {
+          showTemporary('请求超时', 3000);
+        }
       })
       .finally(function() {
+        clearTimeout(timeoutId);
         updateBtn.classList.remove('checking');
       });
   });
