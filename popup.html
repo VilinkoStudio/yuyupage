@@ -147,6 +147,16 @@
       background: transparent;
     }
 
+    /* 临时状态文本颜色（浅色模式） */
+    .build-update-btn.state-timeout,
+    .build-update-btn.state-failed {
+      color: #e64c4f;
+    }
+
+    .build-update-btn.state-newversion {
+      color: #1abc9c;
+    }
+
     .card-spacer {
       margin-top: 12px;
     }
@@ -215,6 +225,16 @@
       .build-update-btn.checking:hover {
         background: transparent;
       }
+
+      /* 临时状态文本颜色（深色模式） */
+      .build-update-btn.state-timeout,
+      .build-update-btn.state-failed {
+        color: #ff7878;
+      }
+
+      .build-update-btn.state-newversion {
+        color: #5ad7bf;
+      }
     }
   </style>
 </head>
@@ -237,9 +257,9 @@
   <div class="build-card card-spacer">
     <div class="build-info" id="buildVersion">
         Version: <span id="manifestVersion"></span><br>
-        BuildVer: 10920260829_12<br>
+        BuildVer: 101020260831_13<br>
         BuildType: <span id="manifestInfo"></span><br>
-        ConfigAPI: v2
+        ConfigAPI: v3
   </div>
     <span class="build-update-btn" id="checkUpdate">检查更新</span>
   </div>

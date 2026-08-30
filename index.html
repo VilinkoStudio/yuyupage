@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="jinrishici-token" content="lrhmAMbXejmYilNvM7ZYNXmpUN7wkwbS">
+    <link rel="icon" type="image/png" href="source/icon16.png">
     <title data-i18n="title">YuyuPage</title>
 
     <link rel="stylesheet" href="source/font-awesome/css/all.min.css">
@@ -195,6 +196,7 @@
             height: 56px; /* 与搜索框高度一致 */
             overflow: hidden;
             border-radius: 12px;
+            -webkit-font-smoothing: antialiased;
         }
 
         .search-input {
@@ -204,6 +206,7 @@
             border: none;
             outline: none;
             border-radius: 12px;
+            -webkit-font-smoothing: antialiased;
             background: var(--input-bg);
             color: var(--input-text);
             font-size: 1.1rem;
@@ -237,6 +240,7 @@
             width: 150px;
             height: 150px;
             border-radius: 50%;
+            -webkit-font-smoothing: antialiased;
             background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
             pointer-events: none;
             transform: translate(-50%, -50%) scale(0.5);
@@ -249,22 +253,6 @@
         .spotlight-glow.active {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
-        }
-
-        .doodle-container {
-            width: 100%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            margin-top: 8px;
-        }
-
-        .doodle-img {
-            max-height: 280px;
-            width: auto;
-            object-fit: contain;
-            pointer-events: none;
-            -webkit-user-drag: none;
         }
 
         .poetry-box {
@@ -334,6 +322,7 @@
             display: flex;
             flex-direction: column;
             transform: scale(0.9);
+            -webkit-font-smoothing: antialiased;
             transition: 0.25s;
             overflow: hidden;
         }
@@ -389,10 +378,67 @@
             height: 40px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            -webkit-font-smoothing: antialiased;
             background: var(--input-bg);
             color: var(--text-color);
             padding: 0 12px;
             outline: none;
+        }
+
+        /* WebDAV 设置区块 */
+        .setting-group {
+            margin: 4px 0 8px;
+            padding: 8px 0;
+        }
+
+        .webdav-actions {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+        }
+
+        .webdav-actions .webdav-verify-btn,
+        .webdav-actions .webdav-sync-btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .webdav-verify-btn {
+            padding: 0 16px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .webdav-verify-msg {
+            flex-basis: 100%;
+            text-align: right;
+            margin-top: 4px;
+            font-size: 0.8rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .webdav-verify-msg.ok {
+            color: #1abc9c;
+        }
+
+        .webdav-verify-msg.err {
+            color: #e64c4f;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .webdav-verify-msg.ok {
+                color: #5ad7bf;
+            }
+
+            .webdav-verify-msg.err {
+                color: #ff7878;
+            }
         }
 
         .switch-label {
@@ -430,6 +476,7 @@
             border: none;
             border-radius: 7px;
             background: var(--input-focus-border);
+            -webkit-font-smoothing: antialiased;
             color: #fff;
             font-size: 0.82rem;
             cursor: pointer;
@@ -455,6 +502,7 @@
             background: var(--border-color);
             border-radius: 12px;
             position: relative;
+            -webkit-font-smoothing: antialiased;
         }
 
         .switch-slider::before {
@@ -463,6 +511,7 @@
             width: 18px;
             height: 18px;
             border-radius: 50%;
+            -webkit-font-smoothing: antialiased;
             background: #fff;
             left: 3px;
             top: 3px;
@@ -515,6 +564,7 @@
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            -webkit-font-smoothing: antialiased;
             transform: scale(0.9);
             transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
             display: flex;
@@ -555,6 +605,7 @@
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
+            -webkit-font-smoothing: antialiased;
             transition: background-color 0.2s, box-shadow 0.2s;
         }
 
@@ -568,6 +619,7 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            -webkit-font-smoothing: antialiased;
             z-index: 99;
             display: none;
             max-height: 212px;
@@ -583,6 +635,7 @@
         .sug-menu::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 3px;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* 单个联想词条 */
@@ -627,10 +680,6 @@
                 font-size: 1rem;
             }
 
-            .doodle-img {
-                max-height: 200px;
-            }
-
             .top-right-tools {
                 top: 16px;
                 right: 16px;
@@ -651,9 +700,11 @@
             <span id="weatherTemp"> -- °C</span>
         </div>
 
+        <!-- 便签功能入口按钮已隐藏
         <button class="docs-text" id="alltext">
             <i class="fa-solid fa-note-sticky"></i>
         </button>
+        -->
 
         <button class="settings-btn" id="openSettingsBtn">
             <i class="fa-solid fa-gear"></i>
@@ -683,10 +734,6 @@
             </div>
             <!-- 联想菜单移至内部包装器之外，避免被裁剪 -->
             <div class="sug-menu" id="sugMenu"></div>
-        </div>
-
-        <div class="doodle-container" id="doodleSlot">
-            <img src="doodle/xiaoman.png" class="doodle-img" draggable="false">
         </div>
 
     </div>
@@ -735,6 +782,8 @@
                         <option value="zh-TW">繁體中文 (中國台灣)</option>
                         <option value="zh-HK">繁體中文 (中國港澳)</option>
                         <option value="en">English</option>
+                        <option value="de" data-i18n="lang_de">Deutsch</option>
+                        <option value="fr" data-i18n="lang_fr">Français</option>
                     </select>
                 </div>
 
@@ -757,7 +806,6 @@
                     <select class="setting-select" id="fontSelect">
                         <option value="minecraft" data-i18n="font_minecraft">像素字体 (Minecraft)</option>
                         <option value="harmonyos" data-i18n="font_harmonyos">鸿蒙黑体 (HarmonyOS)</option>
-                        <option value="misans" data-i18n="font_misans">小米字体 (MiSans)</option>
                         <option value="Tencent" data-i18n="font_tencent">腾讯字体 (Tencent)</option>
                     </select>
                 </div>
@@ -835,17 +883,6 @@
 
                 <div class="setting-item">
                     <label class="switch-label">
-                        <span class="setting-label" data-i18n="label_doodle">显示 Doodle</span>
-                        <span class="setting-label" style="opacity: 0.6;" data-i18n="label_doodle_unsupported">不支持</span>
-
-                        <!-- <input type="checkbox" class="switch-input" id="doodleToggle" disabled>
-
-                        <div class="switch-slider"></div> -->
-                    </label>
-                </div>
-
-                <div class="setting-item">
-                    <label class="switch-label">
                         <span class="setting-label" data-i18n="label_24h">使用 24 小时制</span>
 
                         <input type="checkbox" class="switch-input" id="timeFormatToggle" checked>
@@ -905,6 +942,40 @@
                     </label>
                 </div>
 
+                <!-- WebDAV 同步设置（独立设置项） -->
+                <div class="setting-group" id="webdavGroup">
+                    <div class="setting-item">
+                        <label class="switch-label">
+                            <span class="setting-label" data-i18n="label_webdav_enable">启用 WebDAV 同步</span>
+
+                            <input type="checkbox" class="switch-input" id="webdavEnableToggle">
+
+                            <div class="switch-slider"></div>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label" data-i18n="label_webdav_url">WebDAV 地址</label>
+                        <input type="text" class="setting-input" id="webdavUrl" value="https://dav.jianguoyun.com/dav/" readonly disabled>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label" data-i18n="label_webdav_username">账号</label>
+                        <input type="text" class="setting-input" id="webdavUsername" placeholder="username" autocomplete="off">
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label" data-i18n="label_webdav_password">授权密码</label>
+                        <input type="password" class="setting-input" id="webdavPassword" placeholder="password" autocomplete="off">
+                    </div>
+
+                    <div class="setting-item webdav-actions">
+                        <button class="io-btn webdav-verify-btn" id="webdavVerifyBtn" data-i18n="btn_webdav_verify">验证连接</button>
+                        <button class="io-btn webdav-sync-btn" id="webdavSyncBtn"><i class="fa-solid fa-rotate"></i></button>
+                        <span class="webdav-verify-msg" id="webdavVerifyMsg"></span>
+                    </div>
+                </div>
+
                 <!-- <div style="text-align: left; margin-top: 24px; opacity: 0.5; font-size: 0.8rem; display: flex; align-items: center; gap: 12px;">
                     <span>Version 1.0.9 Build9 20260815</span>
                     <a href="https://yuyupage.vilinko.com/update/index.html?ver=109" target="_blank" style="color: var(--text-color); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; cursor: pointer;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" data-i18n="check_update">检查更新</a>
@@ -940,6 +1011,7 @@
         </div>
     </div>
 
+    <script src="source/js/webdav-service.js" type="module"></script>
     <script src="source/js/main.js" type="module"></script>
 
 </body>

@@ -35,11 +35,16 @@ document.addEventListener('DOMContentLoaded', function() {
     return 0;
   }
 
-  // 临时显示文本后恢复原文
-  function showTemporary(text, ms) {
+  function showTemporary(text, ms, stateClass) {
     updateBtn.textContent = text;
+    if (stateClass) {
+      updateBtn.classList.add(stateClass);
+    }
     setTimeout(function() {
       updateBtn.textContent = ORIGINAL_TEXT;
+      if (stateClass) {
+        updateBtn.classList.remove(stateClass);
+      }
     }, ms);
   }
 
@@ -57,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
       chrome.tabs.create({ url: url });
       newVersion = null;
       updateBtn.textContent = ORIGINAL_TEXT;
+      updateBtn.classList.remove('state-newversion');
       return;
     }
 
@@ -73,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
       timedOut = true;
       controller.abort();
       updateBtn.classList.remove('checking');
-      showTemporary('请求超时', 5000);
+      showTemporary('请求超时', 5000, 'state-timeout');
     }, 40000);
 
     // 从 manifest 获取当前版本与 info 类型
@@ -103,13 +109,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (newVersion) {
           updateBtn.textContent = '发现新版本';
+          updateBtn.classList.add('state-newversion');
         } else {
           showTemporary('已是最新', 5000);
         }
       })
       .catch(function() {
         if (!timedOut) {
-          showTemporary('请求超时', 3000);
+          showTemporary('请求超时', 3000, 'state-failed');
         }
       })
       .finally(function() {

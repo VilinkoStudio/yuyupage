@@ -9,17 +9,21 @@ const DEFAULT_SETTINGS = {
     weatherUnit: 'metric',
     weatherLocation: 'Beijing',
     weatherApiKey: '',
-    showDoodle: false,
     showPoetry: true,
     vilinkoConnect: false,
     showNoteBtn: true,
     noteApp: 'Pogget',
     language: 'zh-CN',
     showSugUrls: true,
-    bingWallpaper: false // 新增：默认关闭
+    bingWallpaper: false, // 新增：默认关闭
+    webdavEnabled: false,
+    webdavUrl: 'https://dav.jianguoyun.com/dav/',
+    webdavUsername: '',
+    webdavPassword: '',
+    webdavLastSync: 0
 };
 
-const CONFIG_VERSION = 2;
+const CONFIG_VERSION = 3;
 
 let is24Hour = true;
 
@@ -96,6 +100,16 @@ const allTextBtn = document.getElementById('alltext');
 const sugUrlsToggle = document.getElementById('sugUrlsToggle');
 const bingWallpaperToggle = document.getElementById('bingWallpaperToggle'); // 新增
 
+// WebDAV 设置相关元素
+const webdavEnableToggle = document.getElementById('webdavEnableToggle');
+const webdavUrl = document.getElementById('webdavUrl');
+const webdavUsername = document.getElementById('webdavUsername');
+const webdavPassword = document.getElementById('webdavPassword');
+const webdavVerifyBtn = document.getElementById('webdavVerifyBtn');
+const webdavSyncBtn = document.getElementById('webdavSyncBtn');
+const webdavVerifyMsg = document.getElementById('webdavVerifyMsg');
+let webdavLastSync = 0; // 上次同步时间戳（毫秒）
+
 
 let translations = {}; // 存储翻译数据
 let labsConfig = {}; // 存储实验室功能配置
@@ -114,14 +128,19 @@ function collectSettings() {
         weatherUnit: weatherUnitSelect.value,
         weatherLocation: weatherLocationInput.value || 'Beijing',
         weatherApiKey: weatherApiKeyInput.value.trim(),
-        showDoodle: false,
         showPoetry: poetryToggle.checked,
         vilinkoConnect: vilinkoConnectToggle.checked,
         showNoteBtn: noteBtnToggle.checked,
         noteApp: noteAppSelect.value,
         language: languageSelect ? languageSelect.value : 'zh-CN',
         showSugUrls: sugUrlsToggle ? sugUrlsToggle.checked : true,
-        bingWallpaper: bingWallpaperToggle ? bingWallpaperToggle.checked : false // 新增
+        bingWallpaper: bingWallpaperToggle ? bingWallpaperToggle.checked : false, // 新增
+        webdavEnabled: webdavEnableToggle ? webdavEnableToggle.checked : false,
+        webdavUrl: 'https://dav.jianguoyun.com/dav/',
+        webdavUsername: webdavUsername ? webdavUsername.value.trim() : '',
+        webdavPassword: webdavPassword ? webdavPassword.value : '',
+        webdavLastSync: (typeof settings !== 'undefined' && settings.webdavLastSync) ? settings.webdavLastSync : 0,
+        ConfigVersion: CONFIG_VERSION
     };
 }
 
@@ -319,6 +338,24 @@ function applySettingsToUI(settings, shouldSave = false) {
         bingWallpaperToggle.checked = settings.bingWallpaper;
     }
 
+    // 加载 WebDAV 设置
+    if (webdavEnableToggle) {
+        webdavEnableToggle.checked = settings.webdavEnabled;
+    }
+    if (webdavUrl) {
+        webdavUrl.value = settings.webdavUrl || 'https://dav.jianguoyun.com/dav/';
+    }
+    if (webdavUsername) {
+        webdavUsername.value = settings.webdavUsername || '';
+    }
+    if (webdavPassword) {
+        webdavPassword.value = settings.webdavPassword || '';
+    }
+    if (typeof settings.webdavLastSync !== 'undefined') {
+        webdavLastSync = settings.webdavLastSync || 0;
+    }
+    updateWebdavDependentControls(settings.webdavEnabled);
+
     // 应用 Bing 壁纸
     applyBingWallpaper(settings.bingWallpaper);
 
@@ -350,7 +387,6 @@ function applyGlobalFont(fontType) {
     const root = document.documentElement;
     const minecraftFontStack = "'MinecraftFont', 'Google Sans', 'Product Sans', 'Helvetica Neue', Arial, sans-serif";
     const harmonyosFontStack = "'HarmonyOS Sans', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif";
-    const misansFontStack = "'MiSans', 'MiSans Latin', 'HarmonyOS Sans', 'Microsoft YaHei', sans-serif";
     const tencentFontStack = "'Tencent Sans', 'TencentFont', 'HarmonyOS Sans', 'Microsoft YaHei', sans-serif";
 
     let targetFontStack = minecraftFontStack;
@@ -366,17 +402,6 @@ function applyGlobalFont(fontType) {
         `;
         document.head.appendChild(style);
         targetFontStack = harmonyosFontStack;
-    } else if (fontType === 'misans') {
-        const style = document.createElement('style');
-        style.textContent = `
-            @font-face {
-                font-family: 'MiSans';
-                src: url('./source/ttf/misans.ttf') format('truetype');
-                font-display: swap;
-            }
-        `;
-        document.head.appendChild(style);
-        targetFontStack = misansFontStack;
     } else if (fontType === 'Tencent') {
         const style = document.createElement('style');
         style.textContent = `
@@ -567,11 +592,7 @@ closeSettingsBtn.addEventListener('click', () => {
     modalOverlay.classList.remove('active');
 });
 
-modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) {
-        modalOverlay.classList.remove('active');
-    }
-});
+// 个性化设置弹窗仅允许点击右上角关闭按钮关闭，点击遮罩等其它区域不响应关闭
 
 engineSelect.addEventListener('change', (e) => {
     applyEngine(e.target.value);
@@ -825,9 +846,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function tryTranslation(str) {
-        // 英文语言环境下不显示快捷翻译
+        // 中文语言环境下才显示快捷翻译；英文、德语、法语等非中文语言均不显示
         const currentLang = languageSelect ? languageSelect.value : 'zh-CN';
-        if (currentLang === 'en') return null;
+        const chineseLangs = ['zh-CN', 'zh-TW', 'zh-HK'];
+        if (!chineseLangs.includes(currentLang)) return null;
 
         if (/[a-zA-Z]/.test(str)) {
             const encodedText = encodeURIComponent(str);
@@ -1426,14 +1448,13 @@ function applyBingWallpaper(enabled) {
     }
 }
 
-// 新增：获取 Bing 壁纸
+// 新增：获取 Bing 壁纸（经 background 请求，失败时自动回退到本地兜底壁纸）
 async function fetchBingWallpaper() {
     const bgElement = document.getElementById('bing-bg');
     try {
-        const response = await fetch('https://bing.biturl.top/?resolution=UHD&format=image&index=0&mkt=zh-CN');
-        if (response.ok) {
-            const imageUrl = response.url; // API 可能会重定向到图片地址
-            bgElement.style.backgroundImage = `url('${imageUrl}')`;
+        const response = await chrome.runtime.sendMessage({ action: 'getBingWallpaper' });
+        if (response && response.url) {
+            bgElement.style.backgroundImage = `url('${response.url}')`;
         }
     } catch (error) {
         console.error('Failed to fetch Bing wallpaper:', error);
@@ -1447,6 +1468,167 @@ if (bingWallpaperToggle) {
         await saveSettings();
     });
 }
+
+// ========== WebDAV 同步设置逻辑（独立功能，固定坚果云 Dav 服务商）==========
+
+const WEBDAV_AUTO_SYNC_INTERVAL = 5 * 24 * 60 * 60 * 1000; // 5 天自动同步一次
+
+// 根据是否启用 WebDAV，禁用/启用其下输入项（地址固定只读，不随开关禁用）
+function updateWebdavDependentControls(enabled) {
+    if (!webdavUsername || !webdavPassword || !webdavVerifyBtn || !webdavSyncBtn) return;
+    const disabled = !enabled;
+    webdavUsername.disabled = disabled;
+    webdavPassword.disabled = disabled;
+    webdavVerifyBtn.disabled = disabled;
+    webdavSyncBtn.disabled = disabled;
+}
+
+// 显示验证/同步结果消息
+function showWebdavVerifyMsg(ok, text) {
+    if (!webdavVerifyMsg) return;
+    webdavVerifyMsg.textContent = text;
+    webdavVerifyMsg.className = 'webdav-verify-msg ' + (ok ? 'ok' : 'err');
+}
+
+// 构造 WebDAV 连接配置（地址固定，仅需账号与密码）
+function buildWebdavConfig() {
+    return {
+        url: 'https://dav.jianguoyun.com/dav/',
+        username: webdavUsername ? webdavUsername.value.trim() : '',
+        password: webdavPassword ? webdavPassword.value : ''
+    };
+}
+
+// 校验账号与密码必填（地址固定，无需校验）
+function checkWebdavFieldsFilled() {
+    return webdavUsername.value.trim() && webdavPassword.value;
+}
+
+// 执行一次同步：先下载远端设置，再用其覆盖本地
+async function performWebdavSync(showMsg) {
+    if (!checkWebdavFieldsFilled()) {
+        const dict = (languageSelect && translations[languageSelect.value]) || {};
+        showWebdavVerifyMsg(false, dict.webdav_verify_required || '请填写完整的账号与密码');
+        return false;
+    }
+
+    webdavSyncBtn.disabled = true;
+    const dict = (languageSelect && translations[languageSelect.value]) || {};
+    const originalText = webdavSyncBtn.textContent;
+    webdavSyncBtn.textContent = dict.webdav_syncing || '( •̀ ω •́ )***';
+
+    const config = buildWebdavConfig();
+
+    try {
+        const download = await window.WebDavService.downloadSettings(config);
+        if (!download.ok) {
+            // 授权失败（账号/密码错误）不应回退上传，直接提示
+            if (download.code === 'UNAUTHORIZED' || download.code === 'INVALID') {
+                if (showMsg) showWebdavVerifyMsg(false, (dict.webdav_sync_fail || '同步失败') + '：' + download.error);
+                return false;
+            }
+            // 远端无可用设置（无 json / 网络错误 / 其他异常）时，先上传当前设置
+            const upload = await window.WebDavService.uploadSettings(config, JSON.stringify(collectSettings(), null, 2));
+            if (upload.ok) {
+                webdavLastSync = Date.now();
+                await saveSettings();
+                if (showMsg) showWebdavVerifyMsg(true, dict.webdav_sync_created || '已创建云端设置');
+                return true;
+            }
+            if (showMsg) showWebdavVerifyMsg(false, (dict.webdav_sync_fail || '同步失败') + '：' + (upload.error || download.error));
+            return false;
+        }
+
+        // 解析远端 JSON 并合并到本地
+        let remoteSettings;
+        try {
+            remoteSettings = JSON.parse(download.data);
+        } catch (e) {
+            if (showMsg) showWebdavVerifyMsg(false, dict.webdav_sync_parse_fail || '云端设置格式无效');
+            return false;
+        }
+
+        // 兼容 { settings: {...} } 包装格式，并规范化后重新应用
+        const raw = remoteSettings.settings ? remoteSettings.settings : remoteSettings;
+
+        // 比对 ConfigVersion：远端版本低于本地则拒绝同步
+        const remoteVersion = Number(raw.ConfigVersion);
+        if (!isNaN(remoteVersion) && remoteVersion < CONFIG_VERSION) {
+            if (showMsg) showWebdavVerifyMsg(false, (dict.webdav_sync_fail || '同步失败') + '：ConfigAPI 版本低');
+            return false;
+        }
+
+        const normalized = normalizeImportedSettings(raw);
+        await loadSettings(normalized);
+        webdavLastSync = Date.now();
+        await saveSettings();
+
+        if (showMsg) showWebdavVerifyMsg(true, dict.webdav_sync_ok || '同步成功');
+        return true;
+    } finally {
+        webdavSyncBtn.disabled = !webdavEnableToggle.checked;
+        webdavSyncBtn.textContent = originalText;
+    }
+}
+
+if (webdavEnableToggle) {
+    webdavEnableToggle.addEventListener('change', async (e) => {
+        updateWebdavDependentControls(e.target.checked);
+        await saveSettings();
+        if (e.target.checked) {
+            // 启用后尝试自动同步一次
+            performWebdavSync(true);
+        }
+    });
+}
+
+if (webdavVerifyBtn) {
+    webdavVerifyBtn.addEventListener('click', async () => {
+        if (!checkWebdavFieldsFilled()) {
+            const dict = (languageSelect && translations[languageSelect.value]) || {};
+            showWebdavVerifyMsg(false, dict.webdav_verify_required || '请填写完整的账号与密码');
+            return;
+        }
+
+        webdavVerifyBtn.disabled = true;
+        const dict0 = (languageSelect && translations[languageSelect.value]) || {};
+        webdavVerifyBtn.textContent = dict0.webdav_verifying || '验证中...';
+
+        const config = buildWebdavConfig();
+        const result = await window.WebDavService.verifyWebdavConnection(config);
+
+        webdavVerifyBtn.disabled = !webdavEnableToggle.checked;
+        const dict1 = (languageSelect && translations[languageSelect.value]) || {};
+        webdavVerifyBtn.textContent = dict1.btn_webdav_verify || '验证连接';
+
+        if (result.ok) {
+            showWebdavVerifyMsg(true, dict1.webdav_verify_ok || '连接成功');
+            await saveSettings();
+        } else {
+            showWebdavVerifyMsg(false, (dict1.webdav_verify_fail || '验证失败') + '：' + result.error);
+        }
+    });
+}
+
+if (webdavSyncBtn) {
+    webdavSyncBtn.addEventListener('click', () => {
+        performWebdavSync(true);
+    });
+}
+
+// 5 天自动同步：满足启用且超过间隔时静默同步
+async function webdavAutoSyncIfNeeded() {
+    if (!webdavEnableToggle || !webdavEnableToggle.checked) return;
+    if (!webdavUsername || !webdavUsername.value.trim() || !webdavPassword || !webdavPassword.value) return;
+    if (Date.now() - webdavLastSync < WEBDAV_AUTO_SYNC_INTERVAL) return;
+    await performWebdavSync(false);
+}
+
+// 页面加载完成后启动自动同步检查
+document.addEventListener('DOMContentLoaded', () => {
+    webdavAutoSyncIfNeeded();
+});
+
 
 // 导入 / 导出配置功能
 const importSettingsBtn = document.getElementById('importSettingsBtn');
