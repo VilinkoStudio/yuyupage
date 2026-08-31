@@ -152,6 +152,14 @@
                         localStorage.removeItem(CACHE_KEY);
                         return null;
                     }
+                    if (!data.study || !data.danger || !data.study.frames || !data.danger.frames) {
+                        localStorage.removeItem(CACHE_KEY);
+                        return null;
+                    }
+                    if (data.study.frames.length === 0 || data.danger.frames.length === 0) {
+                        localStorage.removeItem(CACHE_KEY);
+                        return null;
+                    }
                     return data;
                 } catch (e) {
                     console.warn('缓存读取失败:', e);
@@ -295,6 +303,10 @@
                     }
                 }
 
+                if (frames.length === 0) {
+                    throw new Error('No frames found in GIF');
+                }
+
                 return {
                     W: W,
                     H: H,
@@ -339,6 +351,10 @@
 
                 const dict = [];
                 const colorTable = hasLCT && localTable ? localTable : gct;
+
+                if (!colorTable || colorTable.length === 0) {
+                    throw new Error('No color table available');
+                }
 
                 function resetDict() {
                     dict.length = 0;
@@ -434,24 +450,42 @@
 
                 for (let f = 0; f < frames.length; f++) {
                     const fr = frames[f];
-                    const rgba = lzwDecode(
-                        fr.minCodeSize,
-                        fr.dataBlocks,
-                        fr.width,
-                        fr.height,
-                        fr.hasLCT,
-                        fr.localTable,
-                        gct,
-                        fr.transparent,
-                        fr.transparentIndex
-                    );
+                    try {
+                        const rgba = lzwDecode(
+                            fr.minCodeSize,
+                            fr.dataBlocks,
+                            fr.width,
+                            fr.height,
+                            fr.hasLCT,
+                            fr.localTable,
+                            gct,
+                            fr.transparent,
+                            fr.transparentIndex
+                        );
 
-                    result.push({
-                        dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
-                        patch: Array.from(rgba),
-                        delay: fr.delay || 10,
-                        disposalType: fr.disposalType || 0
-                    });
+                        result.push({
+                            dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
+                            patch: Array.from(rgba),
+                            delay: fr.delay || 10,
+                            disposalType: fr.disposalType || 0
+                        });
+                    } catch (e) {
+                        console.warn('Frame decode error, using fallback:', e);
+                        const fallbackRgba = new Uint8Array(fr.width * fr.height * 4);
+                        for (let i = 0; i < fallbackRgba.length; i++) {
+                            fallbackRgba[i] = i % 4 === 3 ? 255 : 255;
+                        }
+                        result.push({
+                            dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
+                            patch: Array.from(fallbackRgba),
+                            delay: fr.delay || 10,
+                            disposalType: fr.disposalType || 0
+                        });
+                    }
+                }
+
+                if (result.length === 0) {
+                    throw new Error('No frames decompressed');
                 }
 
                 return {
@@ -465,9 +499,15 @@
             function loadGif(url) {
                 return fetch(url)
                     .then(function(r) {
+                        if (!r.ok) {
+                            throw new Error('HTTP ' + r.status);
+                        }
                         return r.arrayBuffer();
                     })
                     .then(function(buf) {
+                        if (buf.byteLength === 0) {
+                            throw new Error('Empty file');
+                        }
                         const gifData = parseGIF(buf);
                         const decoded = decompressFrames(gifData);
                         return decoded;
@@ -475,6 +515,13 @@
             }
 
             function startPlayback(studyDecoded, dangerDecoded) {
+                if (!studyDecoded || !dangerDecoded || !studyDecoded.frames || !dangerDecoded.frames) {
+                    throw new Error('Invalid decoded data');
+                }
+                if (studyDecoded.frames.length === 0 || dangerDecoded.frames.length === 0) {
+                    throw new Error('Empty frames data');
+                }
+
                 const ctx = canvas.getContext('2d');
                 const temp = document.createElement('canvas');
                 const tctx = temp.getContext('2d');
@@ -482,6 +529,7 @@
                 const pctx = patchCanvas.getContext('2d');
 
                 let activeToken = 0;
+                let animationRunning = false;
 
                 function playFrames(decoded, loop, token) {
                     const frames = decoded.frames;
@@ -494,15 +542,30 @@
                     tctx.clearRect(0, 0, W, H);
                     let prevSnapshot = null;
                     let i = 0;
+                    animationRunning = true;
 
                     function draw() {
-                        if (token !== activeToken) {
+                        if (token !== activeToken || !animationRunning) {
+                            return;
+                        }
+                        if (i >= frames.length) {
+                            if (loop) {
+                                tctx.clearRect(0, 0, W, H);
+                                prevSnapshot = null;
+                                i = 0;
+                                draw();
+                            }
                             return;
                         }
                         const fr = frames[i];
+                        if (!fr || !fr.dims) {
+                            i++;
+                            setTimeout(draw, 100);
+                            return;
+                        }
                         const dims = fr.dims;
 
-                        if (i > 0) {
+                        if (i > 0 && frames[i - 1]) {
                             const prevDisposal = frames[i - 1].disposalType;
                             if (prevDisposal === 2) {
                                 tctx.clearRect(dims.left, dims.top, dims.width, dims.height);
@@ -515,24 +578,30 @@
                             prevSnapshot = tctx.getImageData(0, 0, W, H);
                         }
 
-                        patchCanvas.width = dims.width;
-                        patchCanvas.height = dims.height;
-                        const patch = pctx.createImageData(dims.width, dims.height);
-                        patch.data.set(fr.patch);
-                        pctx.putImageData(patch, 0, 0);
-                        tctx.drawImage(patchCanvas, dims.left, dims.top);
+                        try {
+                            patchCanvas.width = dims.width;
+                            patchCanvas.height = dims.height;
+                            const patch = pctx.createImageData(dims.width, dims.height);
+                            if (fr.patch && fr.patch.length > 0) {
+                                patch.data.set(fr.patch);
+                            }
+                            pctx.putImageData(patch, 0, 0);
+                            tctx.drawImage(patchCanvas, dims.left, dims.top);
+                        } catch (e) {
+                            console.warn('Draw error:', e);
+                        }
 
                         ctx.clearRect(0, 0, W, H);
                         ctx.drawImage(temp, 0, 0);
 
-                        const delay = fr.delay > 0 ? fr.delay : 10;
+                        const delay = (fr.delay > 0 ? fr.delay : 10);
                         i++;
 
                         if (i < frames.length) {
                             setTimeout(draw, delay * 10);
                         } else if (loop) {
                             setTimeout(function() {
-                                if (token !== activeToken) {
+                                if (token !== activeToken || !animationRunning) {
                                     return;
                                 }
                                 tctx.clearRect(0, 0, W, H);
@@ -569,18 +638,27 @@
                 const cached = loadFromCache();
 
                 if (cached) {
-                    const studyDecoded = cached.study;
-                    const dangerDecoded = cached.danger;
+                    try {
+                        const studyDecoded = cached.study;
+                        const dangerDecoded = cached.danger;
 
-                    studyDecoded.frames.forEach(f => {
-                        f.patch = new Uint8Array(f.patch);
-                    });
-                    dangerDecoded.frames.forEach(f => {
-                        f.patch = new Uint8Array(f.patch);
-                    });
+                        studyDecoded.frames.forEach(f => {
+                            if (f.patch && Array.isArray(f.patch)) {
+                                f.patch = new Uint8Array(f.patch);
+                            }
+                        });
+                        dangerDecoded.frames.forEach(f => {
+                            if (f.patch && Array.isArray(f.patch)) {
+                                f.patch = new Uint8Array(f.patch);
+                            }
+                        });
 
-                    startPlayback(studyDecoded, dangerDecoded);
-                    return;
+                        startPlayback(studyDecoded, dangerDecoded);
+                        return;
+                    } catch (e) {
+                        console.warn('缓存数据损坏，重新加载:', e);
+                        localStorage.removeItem(CACHE_KEY);
+                    }
                 }
 
                 Promise.all([
