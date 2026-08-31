@@ -124,9 +124,40 @@
                 }
             });
 
-            setTimeout(function() {
-                caption.textContent = '当前在您的国家或地区不可用';
-            }, 10000);
+            const CACHE_KEY = 'gif_cache_data';
+            const CACHE_VERSION = 'v1';
+
+            function saveToCache(studyData, dangerData) {
+                try {
+                    const cacheData = {
+                        version: CACHE_VERSION,
+                        timestamp: Date.now(),
+                        study: studyData,
+                        danger: dangerData
+                    };
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                } catch (e) {
+                    console.warn('缓存存储失败:', e);
+                }
+            }
+
+            function loadFromCache() {
+                try {
+                    const raw = localStorage.getItem(CACHE_KEY);
+                    if (!raw) return null;
+                    const data = JSON.parse(raw);
+                    if (data.version !== CACHE_VERSION) return null;
+                    const maxAge = 7 * 24 * 60 * 60 * 1000;
+                    if (Date.now() - data.timestamp > maxAge) {
+                        localStorage.removeItem(CACHE_KEY);
+                        return null;
+                    }
+                    return data;
+                } catch (e) {
+                    console.warn('缓存读取失败:', e);
+                    return null;
+                }
+            }
 
             function parseGIF(buffer) {
                 const dv = new DataView(buffer);
@@ -145,7 +176,6 @@
                 const aspectRatio = dv.getUint8(pos++);
 
                 const hasGCT = (gctFlags & 0x80) !== 0;
-                const colorRes = ((gctFlags & 0x70) >> 4) + 1;
                 const gctSize = 1 << ((gctFlags & 0x07) + 1);
                 const gct = [];
 
@@ -242,8 +272,6 @@
                             blockSize = dv.getUint8(pos++);
                         }
 
-                        let delay = 10;
-
                         frames.push({
                             left: left,
                             top: top,
@@ -254,7 +282,7 @@
                             localTable: localTable,
                             hasLCT: hasLCT,
                             lctFlags: lctFlags,
-                            delay: delay,
+                            delay: 10,
                             disposalType: 0,
                             interlace: (lctFlags & 0x40) !== 0,
                             transparent: (lctFlags & 0x01) !== 0,
@@ -286,7 +314,6 @@
                 let oldCode = -1;
                 let bits = 0;
                 let buffer = 0;
-                let pos = 0;
                 let dataPos = 0;
                 let currentBlock = dataBlocks[dataPos] || new Uint8Array(0);
                 let blockPos = 0;
@@ -421,7 +448,7 @@
 
                     result.push({
                         dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
-                        patch: rgba,
+                        patch: Array.from(rgba),
                         delay: fr.delay || 10,
                         disposalType: fr.disposalType || 0
                     });
@@ -447,9 +474,8 @@
                     });
             }
 
-            window.addEventListener('load', function() {
+            function startPlayback(studyDecoded, dangerDecoded) {
                 const ctx = canvas.getContext('2d');
-
                 const temp = document.createElement('canvas');
                 const tctx = temp.getContext('2d');
                 const patchCanvas = document.createElement('canvas');
@@ -520,6 +546,43 @@
                     draw();
                 }
 
+                canvas.style.display = 'block';
+                img.style.display = 'none';
+
+                const studyToken = ++activeToken;
+                playFrames(studyDecoded, true, studyToken);
+
+                let totalDuration = 0;
+                for (let i = 0; i < studyDecoded.frames.length; i++) {
+                    totalDuration += (studyDecoded.frames[i].delay || 10) * 10;
+                }
+
+                caption.textContent = '当前在您的国家或地区不可用';
+
+                setTimeout(function() {
+                    const dangerToken = ++activeToken;
+                    playFrames(dangerDecoded, true, dangerToken);
+                }, totalDuration);
+            }
+
+            window.addEventListener('load', function() {
+                const cached = loadFromCache();
+
+                if (cached) {
+                    const studyDecoded = cached.study;
+                    const dangerDecoded = cached.danger;
+
+                    studyDecoded.frames.forEach(f => {
+                        f.patch = new Uint8Array(f.patch);
+                    });
+                    dangerDecoded.frames.forEach(f => {
+                        f.patch = new Uint8Array(f.patch);
+                    });
+
+                    startPlayback(studyDecoded, dangerDecoded);
+                    return;
+                }
+
                 Promise.all([
                     loadGif('./source/study-1.gif'),
                     loadGif('./source/danger2.gif')
@@ -527,26 +590,20 @@
                     const studyDecoded = results[0];
                     const dangerDecoded = results[1];
 
-                    canvas.style.display = 'block';
-                    img.style.display = 'none';
+                    const studyForCache = JSON.parse(JSON.stringify(studyDecoded));
+                    const dangerForCache = JSON.parse(JSON.stringify(dangerDecoded));
+                    saveToCache(studyForCache, dangerForCache);
 
-                    const studyToken = ++activeToken;
-                    playFrames(studyDecoded, true, studyToken);
-
-                    let totalDuration = 0;
-                    for (let i = 0; i < studyDecoded.frames.length; i++) {
-                        totalDuration += (studyDecoded.frames[i].delay || 10) * 10;
-                    }
-
-                    setTimeout(function() {
-                        const dangerToken = ++activeToken;
-                        playFrames(dangerDecoded, true, dangerToken);
-                    }, totalDuration);
+                    startPlayback(studyDecoded, dangerDecoded);
                 }).catch(function(err) {
                     console.warn('GIF 加载失败，使用 img 降级:', err);
                     canvas.style.display = 'none';
                     img.src = './source/study-1.gif';
                     img.style.display = 'block';
+
+                    setTimeout(function() {
+                        caption.textContent = '当前在您的国家或地区不可用';
+                    }, 12400);
 
                     setTimeout(function() {
                         img.src = './source/danger2.gif';
