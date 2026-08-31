@@ -45,15 +45,7 @@
         }
 
         #studyCanvas {
-            max-width: 90vw;
-            max-height: 70vh;
-            height: auto;
-            width: auto;
-            display: block;
-            pointer-events: none;
-            -webkit-user-drag: none;
-            user-select: none;
-            -webkit-user-select: none;
+            display: none;
         }
 
         #studyImg {
@@ -61,7 +53,7 @@
             max-height: 70vh;
             height: auto;
             width: auto;
-            display: none;
+            display: block;
             pointer-events: none;
             -webkit-user-drag: none;
             user-select: none;
@@ -89,56 +81,36 @@
 
     <script>
         (function() {
-            const canvas = document.getElementById('studyCanvas');
             const img = document.getElementById('studyImg');
             const caption = document.getElementById('caption');
 
-            img.addEventListener('dragstart', function(e) {
-                e.preventDefault();
-                return false;
-            });
-
-            window.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-            });
-
-            document.addEventListener('copy', function(e) {
-                e.preventDefault();
-            });
-            document.addEventListener('cut', function(e) {
-                e.preventDefault();
-            });
-            document.addEventListener('dragstart', function(e) {
-                e.preventDefault();
-            });
-
+            // 防止拖拽、右键等
+            img.addEventListener('dragstart', function(e) { e.preventDefault(); return false; });
+            window.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+            document.addEventListener('copy', function(e) { e.preventDefault(); });
+            document.addEventListener('cut', function(e) { e.preventDefault(); });
+            document.addEventListener('dragstart', function(e) { e.preventDefault(); });
             window.addEventListener('keydown', function(e) {
-                if (e.key === 'F11' || e.key === 'F12') {
-                    e.preventDefault();
-                }
+                if (e.key === 'F11' || e.key === 'F12') e.preventDefault();
                 if (e.ctrlKey || e.metaKey) {
                     const k = e.key.toLowerCase();
-                    if (k === 'u' || k === 's' || k === 'c' || k === 'a') {
-                        e.preventDefault();
-                    }
+                    if (k === 'u' || k === 's' || k === 'c' || k === 'a') e.preventDefault();
                 }
             });
 
-            const CACHE_KEY = 'gif_cache_data';
+            // 缓存管理
+            const CACHE_KEY = 'gif_cache_paths';
             const CACHE_VERSION = 'v1';
 
-            function saveToCache(studyData, dangerData) {
+            function saveToCache(studyUrl, dangerUrl) {
                 try {
-                    const cacheData = {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({
                         version: CACHE_VERSION,
                         timestamp: Date.now(),
-                        study: studyData,
-                        danger: dangerData
-                    };
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-                } catch (e) {
-                    console.warn('缓存存储失败:', e);
-                }
+                        studyUrl: studyUrl,
+                        dangerUrl: dangerUrl
+                    }));
+                } catch (e) { /* ignore */ }
             }
 
             function loadFromCache() {
@@ -147,547 +119,90 @@
                     if (!raw) return null;
                     const data = JSON.parse(raw);
                     if (data.version !== CACHE_VERSION) return null;
-                    const maxAge = 7 * 24 * 60 * 60 * 1000;
-                    if (Date.now() - data.timestamp > maxAge) {
+                    if (Date.now() - data.timestamp > 7 * 24 * 60 * 60 * 1000) {
                         localStorage.removeItem(CACHE_KEY);
                         return null;
                     }
-                    if (!data.study || !data.danger || !data.study.frames || !data.danger.frames) {
-                        localStorage.removeItem(CACHE_KEY);
-                        return null;
-                    }
-                    if (data.study.frames.length === 0 || data.danger.frames.length === 0) {
-                        localStorage.removeItem(CACHE_KEY);
-                        return null;
-                    }
+                    if (!data.studyUrl || !data.dangerUrl) return null;
                     return data;
-                } catch (e) {
-                    console.warn('缓存读取失败:', e);
-                    return null;
-                }
+                } catch (e) { return null; }
             }
 
-            function parseGIF(buffer) {
-                const dv = new DataView(buffer);
-                let pos = 0;
-
-                const sig = String.fromCharCode(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
-                const ver = String.fromCharCode(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
-                if (sig !== 'GIF') throw new Error('Not a GIF');
-
-                const W = dv.getUint16(pos, true);
-                pos += 2;
-                const H = dv.getUint16(pos, true);
-                pos += 2;
-                const gctFlags = dv.getUint8(pos++);
-                const bgColor = dv.getUint8(pos++);
-                const aspectRatio = dv.getUint8(pos++);
-
-                const hasGCT = (gctFlags & 0x80) !== 0;
-                const gctSize = 1 << ((gctFlags & 0x07) + 1);
-                const gct = [];
-
-                if (hasGCT) {
-                    for (let i = 0; i < gctSize; i++) {
-                        gct.push(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
-                    }
-                }
-
-                const frames = [];
-                let loopCount = 1;
-
-                function readColorTable(size) {
-                    const table = [];
-                    for (let i = 0; i < size; i++) {
-                        table.push(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
-                    }
-                    return table;
-                }
-
-                while (pos < dv.byteLength) {
-                    const blockId = dv.getUint8(pos++);
-
-                    if (blockId === 0x21) {
-                        const extType = dv.getUint8(pos++);
-                        if (extType === 0xFF) {
-                            const blockSize = dv.getUint8(pos++);
-                            const appId = String.fromCharCode(
-                                dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++),
-                                dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++),
-                                dv.getUint8(pos++), dv.getUint8(pos++)
-                            );
-                            const appAuth = String.fromCharCode(
-                                dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++)
-                            );
-                            if (appId === 'NETSCAPE' && appAuth === '2.0') {
-                                const subBlockSize = dv.getUint8(pos++);
-                                if (subBlockSize === 3) {
-                                    const subBlockId = dv.getUint8(pos++);
-                                    if (subBlockId === 1) {
-                                        loopCount = dv.getUint16(pos, true);
-                                        pos += 2;
-                                    } else {
-                                        pos += 2;
-                                    }
-                                } else {
-                                    pos += subBlockSize;
-                                }
-                            } else {
-                                let subSize = dv.getUint8(pos++);
-                                while (subSize !== 0) {
-                                    pos += subSize;
-                                    subSize = dv.getUint8(pos++);
-                                }
-                            }
-                        } else if (extType === 0xF9) {
-                            let subSize = dv.getUint8(pos++);
-                            while (subSize !== 0) {
-                                pos += subSize;
-                                subSize = dv.getUint8(pos++);
-                            }
-                        } else {
-                            let subSize = dv.getUint8(pos++);
-                            while (subSize !== 0) {
-                                pos += subSize;
-                                subSize = dv.getUint8(pos++);
-                            }
-                        }
-                    } else if (blockId === 0x2C) {
-                        const left = dv.getUint16(pos, true);
-                        pos += 2;
-                        const top = dv.getUint16(pos, true);
-                        pos += 2;
-                        const width = dv.getUint16(pos, true);
-                        pos += 2;
-                        const height = dv.getUint16(pos, true);
-                        pos += 2;
-                        const lctFlags = dv.getUint8(pos++);
-                        const hasLCT = (lctFlags & 0x80) !== 0;
-                        const lctSize = 1 << ((lctFlags & 0x07) + 1);
-
-                        let localTable = null;
-                        if (hasLCT) {
-                            localTable = readColorTable(lctSize);
-                        }
-
-                        const minCodeSize = dv.getUint8(pos++);
-                        const dataBlocks = [];
-                        let blockSize = dv.getUint8(pos++);
-                        while (blockSize !== 0) {
-                            const chunk = new Uint8Array(dv.buffer, pos, blockSize);
-                            dataBlocks.push(chunk);
-                            pos += blockSize;
-                            blockSize = dv.getUint8(pos++);
-                        }
-
-                        frames.push({
-                            left: left,
-                            top: top,
-                            width: width,
-                            height: height,
-                            dataBlocks: dataBlocks,
-                            minCodeSize: minCodeSize,
-                            localTable: localTable,
-                            hasLCT: hasLCT,
-                            lctFlags: lctFlags,
-                            delay: 10,
-                            disposalType: 0,
-                            interlace: (lctFlags & 0x40) !== 0,
-                            transparent: (lctFlags & 0x01) !== 0,
-                            transparentIndex: 0
-                        });
-                    } else if (blockId === 0x3B) {
-                        break;
-                    } else {
-                        break;
-                    }
-                }
-
-                if (frames.length === 0) {
-                    throw new Error('No frames found in GIF');
-                }
-
-                return {
-                    W: W,
-                    H: H,
-                    frames: frames,
-                    gct: gct,
-                    loopCount: loopCount,
-                    bgColor: bgColor
-                };
+            // 预加载图片（返回 Promise）
+            function preloadImage(url) {
+                return new Promise(function(resolve, reject) {
+                    const image = new Image();
+                    image.onload = function() { resolve(url); };
+                    image.onerror = function() { reject(new Error('Failed to load: ' + url)); };
+                    image.src = url;
+                });
             }
 
-            function lzwDecode(minCodeSize, dataBlocks, width, height, hasLCT, localTable, gct, transparent, transparentIndex) {
-                const pixelData = [];
-                let codeSize = minCodeSize + 1;
-                let clearCode = 1 << minCodeSize;
-                let endCode = clearCode + 1;
-                let available = clearCode + 2;
-                let oldCode = -1;
-                let bits = 0;
-                let buffer = 0;
-                let dataPos = 0;
-                let currentBlock = dataBlocks[dataPos] || new Uint8Array(0);
-                let blockPos = 0;
+            let switched = false;          // 是否已切换到 danger
+            let textTimer = null;
+            let switchTimer = null;
 
-                function readBits(n) {
-                    while (bits < n) {
-                        if (blockPos >= currentBlock.length) {
-                            dataPos++;
-                            if (dataPos >= dataBlocks.length) {
-                                return -1;
-                            }
-                            currentBlock = dataBlocks[dataPos];
-                            blockPos = 0;
-                        }
-                        buffer |= currentBlock[blockPos++] << bits;
-                        bits += 8;
-                    }
-                    const val = buffer & ((1 << n) - 1);
-                    buffer >>= n;
-                    bits -= n;
-                    return val;
-                }
-
-                const dict = [];
-                const colorTable = hasLCT && localTable ? localTable : gct;
-
-                if (!colorTable || colorTable.length === 0) {
-                    throw new Error('No color table available');
-                }
-
-                function resetDict() {
-                    dict.length = 0;
-                    for (let i = 0; i < clearCode; i++) {
-                        dict.push([i]);
-                    }
-                    dict.push([]);
-                    dict.push([]);
-                    available = clearCode + 2;
-                    codeSize = minCodeSize + 1;
-                    oldCode = -1;
-                }
-
-                resetDict();
-
-                while (true) {
-                    const code = readBits(codeSize);
-                    if (code === -1) break;
-                    if (code === clearCode) {
-                        resetDict();
-                        oldCode = -1;
-                        continue;
-                    }
-                    if (code === endCode) break;
-
-                    let entry;
-                    if (code < dict.length) {
-                        entry = dict[code];
-                    } else if (code === available) {
-                        entry = dict[oldCode] ? dict[oldCode].slice() : [];
-                        if (oldCode >= 0 && dict[oldCode]) {
-                            entry.push(dict[oldCode][0]);
-                        } else {
-                            entry.push(0);
-                        }
-                    } else {
-                        break;
-                    }
-
-                    for (let i = 0; i < entry.length; i++) {
-                        pixelData.push(entry[i]);
-                    }
-
-                    if (oldCode !== -1 && dict[oldCode]) {
-                        const newEntry = dict[oldCode].slice();
-                        if (entry.length > 0) {
-                            newEntry.push(entry[0]);
-                        } else {
-                            newEntry.push(0);
-                        }
-                        if (available < 4096) {
-                            dict[available] = newEntry;
-                            available++;
-                            if (available >= (1 << codeSize) && codeSize < 12) {
-                                codeSize++;
-                            }
-                        }
-                    }
-                    oldCode = code;
-                }
-
-                const totalPixels = width * height;
-                const rgba = new Uint8Array(totalPixels * 4);
-                const colorArray = colorTable || [];
-
-                for (let i = 0; i < totalPixels && i < pixelData.length; i++) {
-                    const idx = pixelData[i];
-                    const base = i * 4;
-                    if (transparent && idx === transparentIndex) {
-                        rgba[base] = 0;
-                        rgba[base + 1] = 0;
-                        rgba[base + 2] = 0;
-                        rgba[base + 3] = 0;
-                    } else if (idx >= 0 && idx * 3 + 2 < colorArray.length) {
-                        rgba[base] = colorArray[idx * 3];
-                        rgba[base + 1] = colorArray[idx * 3 + 1];
-                        rgba[base + 2] = colorArray[idx * 3 + 2];
-                        rgba[base + 3] = 255;
-                    } else {
-                        rgba[base] = 0;
-                        rgba[base + 1] = 0;
-                        rgba[base + 2] = 0;
-                        rgba[base + 3] = 255;
-                    }
-                }
-
-                return rgba;
+            function clearTimers() {
+                if (textTimer) { clearTimeout(textTimer); textTimer = null; }
+                if (switchTimer) { clearTimeout(switchTimer); switchTimer = null; }
             }
 
-            function decompressFrames(gifData) {
-                const { W, H, frames, gct, loopCount } = gifData;
-                const result = [];
+            // 开始播放 study-1.gif 并启动计时
+            function startStudyAndTimer() {
+                img.src = './source/study-1.gif';
+                caption.textContent = '加载中';
+                switched = false;
 
-                for (let f = 0; f < frames.length; f++) {
-                    const fr = frames[f];
-                    try {
-                        const rgba = lzwDecode(
-                            fr.minCodeSize,
-                            fr.dataBlocks,
-                            fr.width,
-                            fr.height,
-                            fr.hasLCT,
-                            fr.localTable,
-                            gct,
-                            fr.transparent,
-                            fr.transparentIndex
-                        );
-
-                        result.push({
-                            dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
-                            patch: Array.from(rgba),
-                            delay: fr.delay || 10,
-                            disposalType: fr.disposalType || 0
-                        });
-                    } catch (e) {
-                        console.warn('Frame decode error, using fallback:', e);
-                        const fallbackRgba = new Uint8Array(fr.width * fr.height * 4);
-                        for (let i = 0; i < fallbackRgba.length; i++) {
-                            fallbackRgba[i] = i % 4 === 3 ? 255 : 255;
-                        }
-                        result.push({
-                            dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
-                            patch: Array.from(fallbackRgba),
-                            delay: fr.delay || 10,
-                            disposalType: fr.disposalType || 0
-                        });
-                    }
-                }
-
-                if (result.length === 0) {
-                    throw new Error('No frames decompressed');
-                }
-
-                return {
-                    frames: result,
-                    W: W,
-                    H: H,
-                    loopCount: loopCount
-                };
-            }
-
-            function loadGif(url) {
-                return fetch(url)
-                    .then(function(r) {
-                        if (!r.ok) {
-                            throw new Error('HTTP ' + r.status);
-                        }
-                        return r.arrayBuffer();
-                    })
-                    .then(function(buf) {
-                        if (buf.byteLength === 0) {
-                            throw new Error('Empty file');
-                        }
-                        const gifData = parseGIF(buf);
-                        const decoded = decompressFrames(gifData);
-                        return decoded;
-                    });
-            }
-
-            function startPlayback(studyDecoded, dangerDecoded) {
-                if (!studyDecoded || !dangerDecoded || !studyDecoded.frames || !dangerDecoded.frames) {
-                    throw new Error('Invalid decoded data');
-                }
-                if (studyDecoded.frames.length === 0 || dangerDecoded.frames.length === 0) {
-                    throw new Error('Empty frames data');
-                }
-
-                const ctx = canvas.getContext('2d');
-                const temp = document.createElement('canvas');
-                const tctx = temp.getContext('2d');
-                const patchCanvas = document.createElement('canvas');
-                const pctx = patchCanvas.getContext('2d');
-
-                let activeToken = 0;
-                let animationRunning = false;
-
-                function playFrames(decoded, loop, token) {
-                    const frames = decoded.frames;
-                    const W = decoded.W;
-                    const H = decoded.H;
-                    canvas.width = W;
-                    canvas.height = H;
-                    temp.width = W;
-                    temp.height = H;
-                    tctx.clearRect(0, 0, W, H);
-                    let prevSnapshot = null;
-                    let i = 0;
-                    animationRunning = true;
-
-                    function draw() {
-                        if (token !== activeToken || !animationRunning) {
-                            return;
-                        }
-                        if (i >= frames.length) {
-                            if (loop) {
-                                tctx.clearRect(0, 0, W, H);
-                                prevSnapshot = null;
-                                i = 0;
-                                draw();
-                            }
-                            return;
-                        }
-                        const fr = frames[i];
-                        if (!fr || !fr.dims) {
-                            i++;
-                            setTimeout(draw, 100);
-                            return;
-                        }
-                        const dims = fr.dims;
-
-                        if (i > 0 && frames[i - 1]) {
-                            const prevDisposal = frames[i - 1].disposalType;
-                            if (prevDisposal === 2) {
-                                tctx.clearRect(dims.left, dims.top, dims.width, dims.height);
-                            } else if (prevDisposal === 3 && prevSnapshot) {
-                                tctx.putImageData(prevSnapshot, 0, 0);
-                            }
-                        }
-
-                        if (fr.disposalType === 3) {
-                            prevSnapshot = tctx.getImageData(0, 0, W, H);
-                        }
-
-                        try {
-                            patchCanvas.width = dims.width;
-                            patchCanvas.height = dims.height;
-                            const patch = pctx.createImageData(dims.width, dims.height);
-                            if (fr.patch && fr.patch.length > 0) {
-                                patch.data.set(fr.patch);
-                            }
-                            pctx.putImageData(patch, 0, 0);
-                            tctx.drawImage(patchCanvas, dims.left, dims.top);
-                        } catch (e) {
-                            console.warn('Draw error:', e);
-                        }
-
-                        ctx.clearRect(0, 0, W, H);
-                        ctx.drawImage(temp, 0, 0);
-
-                        const delay = (fr.delay > 0 ? fr.delay : 10);
-                        i++;
-
-                        if (i < frames.length) {
-                            setTimeout(draw, delay * 10);
-                        } else if (loop) {
-                            setTimeout(function() {
-                                if (token !== activeToken || !animationRunning) {
-                                    return;
-                                }
-                                tctx.clearRect(0, 0, W, H);
-                                prevSnapshot = null;
-                                i = 0;
-                                draw();
-                            }, delay * 10);
-                        }
-                    }
-
-                    draw();
-                }
-
-                canvas.style.display = 'block';
-                img.style.display = 'none';
-
-                const studyToken = ++activeToken;
-                playFrames(studyDecoded, true, studyToken);
-
-                let totalDuration = 0;
-                for (let i = 0; i < studyDecoded.frames.length; i++) {
-                    totalDuration += (studyDecoded.frames[i].delay || 10) * 10;
-                }
-
-                caption.textContent = '当前在您的国家或地区不可用';
-
-                setTimeout(function() {
-                    const dangerToken = ++activeToken;
-                    playFrames(dangerDecoded, true, dangerToken);
-                }, totalDuration);
-            }
-
-            window.addEventListener('load', function() {
-                const cached = loadFromCache();
-
-                if (cached) {
-                    try {
-                        const studyDecoded = cached.study;
-                        const dangerDecoded = cached.danger;
-
-                        studyDecoded.frames.forEach(f => {
-                            if (f.patch && Array.isArray(f.patch)) {
-                                f.patch = new Uint8Array(f.patch);
-                            }
-                        });
-                        dangerDecoded.frames.forEach(f => {
-                            if (f.patch && Array.isArray(f.patch)) {
-                                f.patch = new Uint8Array(f.patch);
-                            }
-                        });
-
-                        startPlayback(studyDecoded, dangerDecoded);
-                        return;
-                    } catch (e) {
-                        console.warn('缓存数据损坏，重新加载:', e);
-                        localStorage.removeItem(CACHE_KEY);
-                    }
-                }
-
-                Promise.all([
-                    loadGif('./source/study-1.gif'),
-                    loadGif('./source/danger2.gif')
-                ]).then(function(results) {
-                    const studyDecoded = results[0];
-                    const dangerDecoded = results[1];
-
-                    const studyForCache = JSON.parse(JSON.stringify(studyDecoded));
-                    const dangerForCache = JSON.parse(JSON.stringify(dangerDecoded));
-                    saveToCache(studyForCache, dangerForCache);
-
-                    startPlayback(studyDecoded, dangerDecoded);
-                }).catch(function(err) {
-                    console.warn('GIF 加载失败，使用 img 降级:', err);
-                    canvas.style.display = 'none';
-                    img.src = './source/study-1.gif';
-                    img.style.display = 'block';
-
-                    setTimeout(function() {
+                // 监听图片加载完成（如果已缓存，会立即触发）
+                img.onload = function() {
+                    // 加载完成，开始计时 12.4 秒
+                    clearTimers();
+                    textTimer = setTimeout(function() {
                         caption.textContent = '当前在您的国家或地区不可用';
                     }, 12400);
 
-                    setTimeout(function() {
-                        img.src = './source/danger2.gif';
+                    switchTimer = setTimeout(function() {
+                        if (!switched) {
+                            switched = true;
+                            img.src = './source/danger2.gif';
+                            // 切换后文本保持不变（已经是最终文本）
+                        }
                     }, 12400);
-                });
-            });
+                };
+
+                // 如果图片已缓存，可能不会触发 onload？但现代浏览器会触发，为了保险，也可以检查 complete
+                if (img.complete) {
+                    // 如果已经完成，手动触发
+                    img.onload && img.onload();
+                }
+            }
+
+            // 初始化
+            function init() {
+                const cached = loadFromCache();
+                if (cached) {
+                    // 有缓存，直接使用 study-1.gif（可能已缓存，很快）
+                    startStudyAndTimer();
+                } else {
+                    // 首次加载，预加载两个 GIF 后再开始
+                    Promise.all([
+                        preloadImage('./source/study-1.gif'),
+                        preloadImage('./source/danger2.gif')
+                    ]).then(function() {
+                        saveToCache('./source/study-1.gif', './source/danger2.gif');
+                        startStudyAndTimer();
+                    }).catch(function(err) {
+                        console.warn('预加载失败，直接尝试播放', err);
+                        startStudyAndTimer();
+                    });
+                }
+            }
+
+            if (document.readyState === 'complete') {
+                init();
+            } else {
+                window.addEventListener('load', init);
+            }
         })();
     </script>
 </body>
