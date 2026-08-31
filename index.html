@@ -4,15 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="light">
     <title>Yuyupage</title>
-    <script src="./source/js/tailwind.min.css"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         html,
@@ -20,323 +24,535 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            background: #000000;
-            -webkit-tap-highlight-color: transparent;
+            background: #ffffff;
         }
 
-        #dotCanvas {
+        .stage {
             width: 100%;
             height: 100%;
-            display: block;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
         }
 
-        .control-bar {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10, 10, 10, 0.75);
-            backdrop-filter: blur(8px);
-            padding: 12px 24px;
-            border-radius: 60px;
-            border: 1px solid #2a2a2a;
+        .gif-box {
             display: flex;
             align-items: center;
-            gap: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
-            z-index: 20;
-            pointer-events: auto;
-            font-family: system-ui, -apple-system, sans-serif;
-            transition: opacity 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
+            justify-content: center;
+            max-width: 90vw;
         }
 
-        .control-bar label {
-            color: #ccc;
-            font-size: 0.9rem;
-            letter-spacing: 0.3px;
-            font-weight: 400;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .control-bar input {
-            background: #1a1a1a;
-            border: 1px solid #3a3a3a;
-            border-radius: 40px;
-            padding: 8px 18px;
-            color: #fff;
-            font-size: 1rem;
-            min-width: 180px;
-            outline: none;
-            transition: border 0.2s;
-            font-family: inherit;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .control-bar input:focus {
-            border-color: #7a7a7a;
-        }
-
-        .control-bar button {
-            background: #2c2c2c;
-            border: none;
-            color: #f0f0f0;
-            padding: 8px 22px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            letter-spacing: 0.3px;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .control-bar button:hover {
-            background: #3f3f3f;
-        }
-
-        .control-bar button:active {
-            transform: scale(0.95);
-        }
-
-        @media (max-width: 640px) {
-            .control-bar {
-                padding: 10px 16px;
-                gap: 10px;
-                flex-wrap: wrap;
-                justify-content: center;
-                width: 90%;
-                border-radius: 30px;
-            }
-
-            .control-bar input {
-                min-width: 120px;
-                flex: 1;
-            }
-        }
-
-        .no-click {
-            cursor: default;
-        }
-
-        .control-bar.hidden {
-            opacity: 0;
+        #studyCanvas {
+            max-width: 90vw;
+            max-height: 70vh;
+            height: auto;
+            width: auto;
+            display: block;
             pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #studyImg {
+            max-width: 90vw;
+            max-height: 70vh;
+            height: auto;
+            width: auto;
+            display: none;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .caption {
+            color: #555555;
+            font-size: 0.8rem;
+            font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            letter-spacing: 0.5px;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <canvas id="dotCanvas"></canvas>
-
-    <div class="control-bar hidden" id="controlBar">
-        <label for="textInput">文字</label>
-        <input type="text" id="textInput" value="点阵" placeholder="输入任意文字或符号">
-        <button id="renderBtn">显示</button>
+    <div class="stage">
+        <div class="gif-box">
+            <canvas id="studyCanvas"></canvas>
+            <img id="studyImg" src="./source/study-1.gif" alt="">
+        </div>
+        <div class="caption" id="caption">加载中</div>
     </div>
 
     <script>
         (function() {
-            const canvas = document.getElementById('dotCanvas');
-            const ctx = canvas.getContext('2d');
+            const canvas = document.getElementById('studyCanvas');
+            const img = document.getElementById('studyImg');
+            const caption = document.getElementById('caption');
 
-            const dotRadius = 3;
-            const gap = 8;
-            const offColor = "#121212";
-            const onColor = "#ffffff";
-
-            let cols, rows;
-            let dotMatrix = [];
-
-            let currentText = "( ´ ▽ ` )ﾉ";
-            let lastInteractionTime = Date.now();
-            let clickCount = 0;
-            let clickTimer = null;
-            let isSleeping = false;
-            let sleepTimer = null;
-            let singleClickIndex = 0;
-
-            const SLEEP_DELAY = 5000;
-
-            const SLEEP_TEXTS = ['［(－－)］zzz', '(。-ω-)zzz', '(-_-) zzz'];
-            const SINGLE_CLICK_TEXTS = [
-                '(¬_¬)',
-                'ﾉ(#^.^#)',
-                '（￣～￣;）',
-                'ヽ( ´¬`)ノ',
-                '(￣^￣)ヘ',
-                '(￣ω￣ヘ)',
-                'd(-_^)'
-            ];
-
-            function getRandomItem(arr) {
-                return arr[Math.floor(Math.random() * arr.length)];
-            }
-
-            function renderTextOnDots(text) {
-                if (!text || text.length === 0) {
-                    for (let y = 0; y < rows; y++) {
-                        for (let x = 0; x < cols; x++) {
-                            dotMatrix[y][x] = false;
-                        }
-                    }
-                    drawGrid();
-                    return;
-                }
-
-                const offscreen = document.createElement('canvas');
-                offscreen.width = canvas.width;
-                offscreen.height = canvas.height;
-                const offCtx = offscreen.getContext('2d');
-
-                offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
-
-                const maxWidth = canvas.width * 0.9;
-                const maxHeight = canvas.height * 0.9;
-                let fontSize = Math.min(canvas.width, canvas.height) * 0.3;
-                offCtx.textAlign = 'center';
-                offCtx.textBaseline = 'middle';
-
-                const measureText = (size) => {
-                    offCtx.font = `bold ${size}px "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif`;
-                    const metrics = offCtx.measureText(text);
-                    const textWidth = metrics.width;
-                    const textHeight = size * 1.2;
-                    return { width: textWidth, height: textHeight };
-                };
-
-                let bestSize = Math.min(canvas.width, canvas.height) * 0.4;
-                let step = 2;
-                let attempts = 0;
-                for (let size = bestSize; size > 10; size -= step) {
-                    const { width, height } = measureText(size);
-                    if (width <= maxWidth && height <= maxHeight) {
-                        bestSize = size;
-                        break;
-                    }
-                    attempts++;
-                    if (attempts > 200) break;
-                }
-
-                if (bestSize < 14) bestSize = 14;
-
-                offCtx.font = `bold ${bestSize}px "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif`;
-                const cx = offscreen.width / 2;
-                const cy = offscreen.height / 2;
-                offCtx.fillStyle = '#ffffff';
-                offCtx.shadowColor = 'transparent';
-                offCtx.fillText(text, cx, cy);
-
-                const imageData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
-                const data = imageData.data;
-
-                for (let y = 0; y < rows; y++) {
-                    for (let x = 0; x < cols; x++) {
-                        const px = x * gap + gap / 2;
-                        const py = y * gap + gap / 2;
-                        const ix = Math.floor(px);
-                        const iy = Math.floor(py);
-                        if (ix < 0 || ix >= offscreen.width || iy < 0 || iy >= offscreen.height) {
-                            dotMatrix[y][x] = false;
-                            continue;
-                        }
-                        const index = (iy * offscreen.width + ix) * 4;
-                        const isWhite = data[index] > 128;
-                        dotMatrix[y][x] = isWhite;
-                    }
-                }
-
-                drawGrid();
-            }
-
-            function drawGrid() {
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                for (let y = 0; y < rows; y++) {
-                    for (let x = 0; x < cols; x++) {
-                        const px = x * gap + gap / 2;
-                        const py = y * gap + gap / 2;
-                        ctx.beginPath();
-                        ctx.arc(px, py, dotRadius, 0, Math.PI * 2);
-                        ctx.fillStyle = dotMatrix[y][x] ? onColor : offColor;
-                        ctx.fill();
-                    }
-                }
-            }
-
-            function updateDisplay(text) {
-                currentText = text;
-                lastInteractionTime = Date.now();
-                isSleeping = false;
-                if (sleepTimer) {
-                    clearTimeout(sleepTimer);
-                    sleepTimer = null;
-                }
-                renderTextOnDots(text);
-                resetSleepTimer();
-            }
-
-            function resetSleepTimer() {
-                if (sleepTimer) {
-                    clearTimeout(sleepTimer);
-                    sleepTimer = null;
-                }
-                sleepTimer = setTimeout(() => {
-                    isSleeping = true;
-                    const sleepText = getRandomItem(SLEEP_TEXTS);
-                    currentText = sleepText;
-                    renderTextOnDots(sleepText);
-                }, SLEEP_DELAY);
-            }
-
-            function handleClick(e) {
-                clickCount++;
-                if (clickTimer) {
-                    clearTimeout(clickTimer);
-                }
-                clickTimer = setTimeout(() => {
-                    let text;
-                    if (clickCount < 4) {
-                        text = SINGLE_CLICK_TEXTS[singleClickIndex % SINGLE_CLICK_TEXTS.length];
-                        singleClickIndex++;
-                    } else if (clickCount >= 4 && clickCount < 7) {
-                        text = '(¬_¬)ﾉ';
-                    } else if (clickCount >= 7) {
-                        text = getRandomItem(['(｀д´)ゝ', '┗(｀o ´)┓']);
-                    }
-                    updateDisplay(text);
-                    clickCount = 0;
-                    clickTimer = null;
-                }, 300);
-            }
-
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                cols = Math.floor(canvas.width / gap);
-                rows = Math.floor(canvas.height / gap);
-                dotMatrix = Array(rows).fill().map(() => Array(cols).fill(false));
-                renderTextOnDots(currentText);
-            }
-
-            canvas.addEventListener('click', handleClick);
-
-            window.addEventListener('resize', function() {
-                resizeCanvas();
+            img.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
             });
 
-            resizeCanvas();
+            window.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
 
-            resetSleepTimer();
+            document.addEventListener('copy', function(e) {
+                e.preventDefault();
+            });
+            document.addEventListener('cut', function(e) {
+                e.preventDefault();
+            });
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
 
-            window.renderTextOnDots = renderTextOnDots;
-            window.updateDisplay = updateDisplay;
+            window.addEventListener('keydown', function(e) {
+                if (e.key === 'F11' || e.key === 'F12') {
+                    e.preventDefault();
+                }
+                if (e.ctrlKey || e.metaKey) {
+                    const k = e.key.toLowerCase();
+                    if (k === 'u' || k === 's' || k === 'c' || k === 'a') {
+                        e.preventDefault();
+                    }
+                }
+            });
+
+            setTimeout(function() {
+                caption.textContent = '当前在您的国家或地区不可用';
+            }, 10000);
+
+            function parseGIF(buffer) {
+                const dv = new DataView(buffer);
+                let pos = 0;
+
+                const sig = String.fromCharCode(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
+                const ver = String.fromCharCode(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
+                if (sig !== 'GIF') throw new Error('Not a GIF');
+
+                const W = dv.getUint16(pos, true);
+                pos += 2;
+                const H = dv.getUint16(pos, true);
+                pos += 2;
+                const gctFlags = dv.getUint8(pos++);
+                const bgColor = dv.getUint8(pos++);
+                const aspectRatio = dv.getUint8(pos++);
+
+                const hasGCT = (gctFlags & 0x80) !== 0;
+                const colorRes = ((gctFlags & 0x70) >> 4) + 1;
+                const gctSize = 1 << ((gctFlags & 0x07) + 1);
+                const gct = [];
+
+                if (hasGCT) {
+                    for (let i = 0; i < gctSize; i++) {
+                        gct.push(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
+                    }
+                }
+
+                const frames = [];
+                let loopCount = 1;
+
+                function readColorTable(size) {
+                    const table = [];
+                    for (let i = 0; i < size; i++) {
+                        table.push(dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++));
+                    }
+                    return table;
+                }
+
+                while (pos < dv.byteLength) {
+                    const blockId = dv.getUint8(pos++);
+
+                    if (blockId === 0x21) {
+                        const extType = dv.getUint8(pos++);
+                        if (extType === 0xFF) {
+                            const blockSize = dv.getUint8(pos++);
+                            const appId = String.fromCharCode(
+                                dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++),
+                                dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++),
+                                dv.getUint8(pos++), dv.getUint8(pos++)
+                            );
+                            const appAuth = String.fromCharCode(
+                                dv.getUint8(pos++), dv.getUint8(pos++), dv.getUint8(pos++)
+                            );
+                            if (appId === 'NETSCAPE' && appAuth === '2.0') {
+                                const subBlockSize = dv.getUint8(pos++);
+                                if (subBlockSize === 3) {
+                                    const subBlockId = dv.getUint8(pos++);
+                                    if (subBlockId === 1) {
+                                        loopCount = dv.getUint16(pos, true);
+                                        pos += 2;
+                                    } else {
+                                        pos += 2;
+                                    }
+                                } else {
+                                    pos += subBlockSize;
+                                }
+                            } else {
+                                let subSize = dv.getUint8(pos++);
+                                while (subSize !== 0) {
+                                    pos += subSize;
+                                    subSize = dv.getUint8(pos++);
+                                }
+                            }
+                        } else if (extType === 0xF9) {
+                            let subSize = dv.getUint8(pos++);
+                            while (subSize !== 0) {
+                                pos += subSize;
+                                subSize = dv.getUint8(pos++);
+                            }
+                        } else {
+                            let subSize = dv.getUint8(pos++);
+                            while (subSize !== 0) {
+                                pos += subSize;
+                                subSize = dv.getUint8(pos++);
+                            }
+                        }
+                    } else if (blockId === 0x2C) {
+                        const left = dv.getUint16(pos, true);
+                        pos += 2;
+                        const top = dv.getUint16(pos, true);
+                        pos += 2;
+                        const width = dv.getUint16(pos, true);
+                        pos += 2;
+                        const height = dv.getUint16(pos, true);
+                        pos += 2;
+                        const lctFlags = dv.getUint8(pos++);
+                        const hasLCT = (lctFlags & 0x80) !== 0;
+                        const lctSize = 1 << ((lctFlags & 0x07) + 1);
+
+                        let localTable = null;
+                        if (hasLCT) {
+                            localTable = readColorTable(lctSize);
+                        }
+
+                        const minCodeSize = dv.getUint8(pos++);
+                        const dataBlocks = [];
+                        let blockSize = dv.getUint8(pos++);
+                        while (blockSize !== 0) {
+                            const chunk = new Uint8Array(dv.buffer, pos, blockSize);
+                            dataBlocks.push(chunk);
+                            pos += blockSize;
+                            blockSize = dv.getUint8(pos++);
+                        }
+
+                        let delay = 10;
+
+                        frames.push({
+                            left: left,
+                            top: top,
+                            width: width,
+                            height: height,
+                            dataBlocks: dataBlocks,
+                            minCodeSize: minCodeSize,
+                            localTable: localTable,
+                            hasLCT: hasLCT,
+                            lctFlags: lctFlags,
+                            delay: delay,
+                            disposalType: 0,
+                            interlace: (lctFlags & 0x40) !== 0,
+                            transparent: (lctFlags & 0x01) !== 0,
+                            transparentIndex: 0
+                        });
+                    } else if (blockId === 0x3B) {
+                        break;
+                    } else {
+                        break;
+                    }
+                }
+
+                return {
+                    W: W,
+                    H: H,
+                    frames: frames,
+                    gct: gct,
+                    loopCount: loopCount,
+                    bgColor: bgColor
+                };
+            }
+
+            function lzwDecode(minCodeSize, dataBlocks, width, height, hasLCT, localTable, gct, transparent, transparentIndex) {
+                const pixelData = [];
+                let codeSize = minCodeSize + 1;
+                let clearCode = 1 << minCodeSize;
+                let endCode = clearCode + 1;
+                let available = clearCode + 2;
+                let oldCode = -1;
+                let bits = 0;
+                let buffer = 0;
+                let pos = 0;
+                let dataPos = 0;
+                let currentBlock = dataBlocks[dataPos] || new Uint8Array(0);
+                let blockPos = 0;
+
+                function readBits(n) {
+                    while (bits < n) {
+                        if (blockPos >= currentBlock.length) {
+                            dataPos++;
+                            if (dataPos >= dataBlocks.length) {
+                                return -1;
+                            }
+                            currentBlock = dataBlocks[dataPos];
+                            blockPos = 0;
+                        }
+                        buffer |= currentBlock[blockPos++] << bits;
+                        bits += 8;
+                    }
+                    const val = buffer & ((1 << n) - 1);
+                    buffer >>= n;
+                    bits -= n;
+                    return val;
+                }
+
+                const dict = [];
+                const colorTable = hasLCT && localTable ? localTable : gct;
+
+                function resetDict() {
+                    dict.length = 0;
+                    for (let i = 0; i < clearCode; i++) {
+                        dict.push([i]);
+                    }
+                    dict.push([]);
+                    dict.push([]);
+                    available = clearCode + 2;
+                    codeSize = minCodeSize + 1;
+                    oldCode = -1;
+                }
+
+                resetDict();
+
+                while (true) {
+                    const code = readBits(codeSize);
+                    if (code === -1) break;
+                    if (code === clearCode) {
+                        resetDict();
+                        oldCode = -1;
+                        continue;
+                    }
+                    if (code === endCode) break;
+
+                    let entry;
+                    if (code < dict.length) {
+                        entry = dict[code];
+                    } else if (code === available) {
+                        entry = dict[oldCode] ? dict[oldCode].slice() : [];
+                        if (oldCode >= 0 && dict[oldCode]) {
+                            entry.push(dict[oldCode][0]);
+                        } else {
+                            entry.push(0);
+                        }
+                    } else {
+                        break;
+                    }
+
+                    for (let i = 0; i < entry.length; i++) {
+                        pixelData.push(entry[i]);
+                    }
+
+                    if (oldCode !== -1 && dict[oldCode]) {
+                        const newEntry = dict[oldCode].slice();
+                        if (entry.length > 0) {
+                            newEntry.push(entry[0]);
+                        } else {
+                            newEntry.push(0);
+                        }
+                        if (available < 4096) {
+                            dict[available] = newEntry;
+                            available++;
+                            if (available >= (1 << codeSize) && codeSize < 12) {
+                                codeSize++;
+                            }
+                        }
+                    }
+                    oldCode = code;
+                }
+
+                const totalPixels = width * height;
+                const rgba = new Uint8Array(totalPixels * 4);
+                const colorArray = colorTable || [];
+
+                for (let i = 0; i < totalPixels && i < pixelData.length; i++) {
+                    const idx = pixelData[i];
+                    const base = i * 4;
+                    if (transparent && idx === transparentIndex) {
+                        rgba[base] = 0;
+                        rgba[base + 1] = 0;
+                        rgba[base + 2] = 0;
+                        rgba[base + 3] = 0;
+                    } else if (idx >= 0 && idx * 3 + 2 < colorArray.length) {
+                        rgba[base] = colorArray[idx * 3];
+                        rgba[base + 1] = colorArray[idx * 3 + 1];
+                        rgba[base + 2] = colorArray[idx * 3 + 2];
+                        rgba[base + 3] = 255;
+                    } else {
+                        rgba[base] = 0;
+                        rgba[base + 1] = 0;
+                        rgba[base + 2] = 0;
+                        rgba[base + 3] = 255;
+                    }
+                }
+
+                return rgba;
+            }
+
+            function decompressFrames(gifData) {
+                const { W, H, frames, gct, loopCount } = gifData;
+                const result = [];
+
+                for (let f = 0; f < frames.length; f++) {
+                    const fr = frames[f];
+                    const rgba = lzwDecode(
+                        fr.minCodeSize,
+                        fr.dataBlocks,
+                        fr.width,
+                        fr.height,
+                        fr.hasLCT,
+                        fr.localTable,
+                        gct,
+                        fr.transparent,
+                        fr.transparentIndex
+                    );
+
+                    result.push({
+                        dims: { left: fr.left, top: fr.top, width: fr.width, height: fr.height },
+                        patch: rgba,
+                        delay: fr.delay || 10,
+                        disposalType: fr.disposalType || 0
+                    });
+                }
+
+                return {
+                    frames: result,
+                    W: W,
+                    H: H,
+                    loopCount: loopCount
+                };
+            }
+
+            function loadGif(url) {
+                return fetch(url)
+                    .then(function(r) {
+                        return r.arrayBuffer();
+                    })
+                    .then(function(buf) {
+                        const gifData = parseGIF(buf);
+                        const decoded = decompressFrames(gifData);
+                        return decoded;
+                    });
+            }
+
+            window.addEventListener('load', function() {
+                const ctx = canvas.getContext('2d');
+
+                const temp = document.createElement('canvas');
+                const tctx = temp.getContext('2d');
+                const patchCanvas = document.createElement('canvas');
+                const pctx = patchCanvas.getContext('2d');
+
+                let activeToken = 0;
+
+                function playFrames(decoded, loop, token) {
+                    const frames = decoded.frames;
+                    const W = decoded.W;
+                    const H = decoded.H;
+                    canvas.width = W;
+                    canvas.height = H;
+                    temp.width = W;
+                    temp.height = H;
+                    tctx.clearRect(0, 0, W, H);
+                    let prevSnapshot = null;
+                    let i = 0;
+
+                    function draw() {
+                        if (token !== activeToken) {
+                            return;
+                        }
+                        const fr = frames[i];
+                        const dims = fr.dims;
+
+                        if (i > 0) {
+                            const prevDisposal = frames[i - 1].disposalType;
+                            if (prevDisposal === 2) {
+                                tctx.clearRect(dims.left, dims.top, dims.width, dims.height);
+                            } else if (prevDisposal === 3 && prevSnapshot) {
+                                tctx.putImageData(prevSnapshot, 0, 0);
+                            }
+                        }
+
+                        if (fr.disposalType === 3) {
+                            prevSnapshot = tctx.getImageData(0, 0, W, H);
+                        }
+
+                        patchCanvas.width = dims.width;
+                        patchCanvas.height = dims.height;
+                        const patch = pctx.createImageData(dims.width, dims.height);
+                        patch.data.set(fr.patch);
+                        pctx.putImageData(patch, 0, 0);
+                        tctx.drawImage(patchCanvas, dims.left, dims.top);
+
+                        ctx.clearRect(0, 0, W, H);
+                        ctx.drawImage(temp, 0, 0);
+
+                        const delay = fr.delay > 0 ? fr.delay : 10;
+                        i++;
+
+                        if (i < frames.length) {
+                            setTimeout(draw, delay * 10);
+                        } else if (loop) {
+                            setTimeout(function() {
+                                if (token !== activeToken) {
+                                    return;
+                                }
+                                tctx.clearRect(0, 0, W, H);
+                                prevSnapshot = null;
+                                i = 0;
+                                draw();
+                            }, delay * 10);
+                        }
+                    }
+
+                    draw();
+                }
+
+                Promise.all([
+                    loadGif('./source/study-1.gif'),
+                    loadGif('./source/danger2.gif')
+                ]).then(function(results) {
+                    const studyDecoded = results[0];
+                    const dangerDecoded = results[1];
+
+                    canvas.style.display = 'block';
+                    img.style.display = 'none';
+
+                    const studyToken = ++activeToken;
+                    playFrames(studyDecoded, true, studyToken);
+
+                    let totalDuration = 0;
+                    for (let i = 0; i < studyDecoded.frames.length; i++) {
+                        totalDuration += (studyDecoded.frames[i].delay || 10) * 10;
+                    }
+
+                    setTimeout(function() {
+                        const dangerToken = ++activeToken;
+                        playFrames(dangerDecoded, true, dangerToken);
+                    }, totalDuration);
+                }).catch(function(err) {
+                    console.warn('GIF 加载失败，使用 img 降级:', err);
+                    canvas.style.display = 'none';
+                    img.src = './source/study-1.gif';
+                    img.style.display = 'block';
+
+                    setTimeout(function() {
+                        img.src = './source/danger2.gif';
+                    }, 12400);
+                });
+            });
         })();
     </script>
 </body>
