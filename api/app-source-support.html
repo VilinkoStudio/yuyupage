@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#F9F9FF" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#131317" media="(prefers-color-scheme: dark)">
+    <title>Vilinko Studio 服务中心</title>
+    <link href="./source/css/tailwind.min.css" rel="stylesheet" />
+    <link href="./source/font-awesome/css/all.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': 'var(--primary)',
+                        'on-primary': 'var(--on-primary)',
+                        'primary-container': 'var(--primary-container)',
+                        'on-primary-container': 'var(--on-primary-container)',
+                        'secondary': 'var(--secondary)',
+                        'secondary-container': 'var(--secondary-container)',
+                        'on-secondary-container': 'var(--on-secondary-container)',
+                        'tertiary-container': 'var(--tertiary-container)',
+                        'on-tertiary-container': 'var(--on-tertiary-container)',
+                        'surface': 'var(--surface)',
+                        'surface-container-low': 'var(--surface-container-low)',
+                        'surface-container': 'var(--surface-container)',
+                        'surface-container-high': 'var(--surface-container-high)',
+                        'surface-container-highest': 'var(--surface-container-highest)',
+                        'on-surface': 'var(--on-surface)',
+                        'on-surface-variant': 'var(--on-surface-variant)',
+                        'outline': 'var(--outline)',
+                        'outline-variant': 'var(--outline-variant)',
+                        'inverse-surface': 'var(--inverse-surface)',
+                        'inverse-on-surface': 'var(--inverse-on-surface)',
+                        'inverse-primary': 'var(--inverse-primary)',
+                        'error': 'var(--error)',
+                        'on-error': 'var(--on-error)',
+                        'error-container': 'var(--error-container)',
+                        'on-error-container': 'var(--on-error-container)'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ============================================================
+       浅色主题（默认）—— 浏览器不支持深浅模式时使用
+       ============================================================ */
+        :root {
+            --primary: #5279FB;
+            --on-primary: #FFFFFF;
+            --primary-container: #E0E0FC;
+            --on-primary-container: #061844;
+            --secondary: #5A5C7C;
+            --secondary-container: #E0E0FE;
+            --on-secondary-container: #151935;
+            --tertiary-container: #FFD8E7;
+            --on-tertiary-container: #3C0322;
+            --surface: #F9F9FF;
+            --surface-container-low: #F3F3F9;
+            --surface-container: #EDEDF3;
+            --surface-container-high: #E8E8ED;
+            --surface-container-highest: #E2E2E8;
+            --on-surface: #1B1B1F;
+            --on-surface-variant: #464651;
+            --outline: #767682;
+            --outline-variant: #C6C5D2;
+            --inverse-surface: #303034;
+            --inverse-on-surface: #F0F0F6;
+            --inverse-primary: #C0C2FD;
+            --error: #B3261E;
+            --on-error: #FFFFFF;
+            --error-container: #F9DEDC;
+            --on-error-container: #410E0B;
+
+            --scrim: rgba(0, 0, 0, .32);
+            --shadow-soft: 0 1px 2px rgba(0, 0, 0, .06);
+            --shadow-card: 0 1px 2px rgba(0, 0, 0, .06);
+            --shadow-dialog: 0 8px 24px rgba(0, 0, 0, .16);
+            --shadow-snack: 0 4px 14px rgba(0, 0, 0, .18);
+        }
+
+        /* ============================================================
+       深色主题 —— 跟随浏览器
+       ============================================================ */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #C0C2FD;
+                --on-primary: #062C70;
+                --primary-container: #07409F;
+                --on-primary-container: #E0E0FC;
+                --secondary: #C3C3E9;
+                --secondary-container: #424463;
+                --on-secondary-container: #E0E0FE;
+                --tertiary-container: #6E334E;
+                --on-tertiary-container: #FFD8E7;
+                --surface: #131317;
+                --surface-container-low: #1B1B1F;
+                --surface-container: #1F1F23;
+                --surface-container-high: #2A2A2E;
+                --surface-container-highest: #343439;
+                --on-surface: #E2E2E8;
+                --on-surface-variant: #C6C5D2;
+                --outline: #90909C;
+                --outline-variant: #464651;
+                --inverse-surface: #E2E2E8;
+                --inverse-on-surface: #303034;
+                --inverse-primary: #3857BA;
+                --error: #F2B8B5;
+                --on-error: #601410;
+                --error-container: #8C1D18;
+                --on-error-container: #F9DEDC;
+
+                --scrim: rgba(0, 0, 0, .6);
+                --shadow-soft: 0 1px 2px rgba(0, 0, 0, .5);
+                --shadow-card: 0 1px 2px rgba(0, 0, 0, .5);
+                --shadow-dialog: 0 8px 24px rgba(0, 0, 0, .6);
+                --shadow-snack: 0 4px 14px rgba(0, 0, 0, .6);
+            }
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: var(--surface);
+            font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            color: var(--on-surface);
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ---------- App shell：全宽自适应 ---------- */
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100dvh;
+            min-height: 100dvh;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        /* ---------- Screens ---------- */
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            will-change: transform;
+        }
+
+        .screen-scroll {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .image-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .screen-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        /* ---------- App bar ---------- */
+        .app-bar {
+            flex: 0 0 auto;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0 4px;
+            background: var(--surface);
+            transition: background-color .25s cubic-bezier(.2, 0, 0, 1);
+            z-index: 5;
+        }
+
+        .app-bar.scrolled {
+            background: var(--surface-container);
+        }
+
+        .app-bar-title {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0 0 0 8px;
+            font-size: 22px;
+            line-height: 28px;
+            font-weight: 400;
+            color: var(--on-surface);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .app-bar-btn,
+        .app-bar-icon-static {
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--on-surface-variant);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color .2s ease, transform .12s ease;
+            font-family: inherit;
+        }
+
+        .app-bar-icon-static {
+            cursor: default;
+        }
+
+        .app-bar-btn:hover {
+            background: color-mix(in srgb, currentColor 8%, transparent);
+        }
+
+        .app-bar-btn:active {
+            transform: scale(.92);
+        }
+
+        .app-bar-spacer {
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+        }
+
+        .material-symbols-rounded {
+            font-family: 'Material Symbols Rounded';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            -webkit-font-feature-settings: 'liga';
+            font-feature-settings: 'liga';
+            user-select: none;
+        }
+
+        /* ---------- Ripple ---------- */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple-wave {
+            position: absolute;
+            border-radius: 9999px;
+            background: currentColor;
+            opacity: .12;
+            transform: scale(0);
+            animation: rippleAnim .55s cubic-bezier(.2, 0, 0, 1) forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim {
+            0% {
+                transform: scale(0);
+                opacity: .14;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* ============================================================
+       List —— 左图标 / 靠左文字 / 右箭头，同一行水平排布
+       ============================================================ */
+        .list-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            width: 100%;
+        }
+
+        .list-item {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            width: 100%;
+            min-height: 72px;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            background: var(--surface-container-low);
+            color: var(--on-surface);
+            border: none;
+            text-align: left;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform .12s ease, background-color .2s ease;
+        }
+
+        .list-item:active {
+            transform: scale(.985);
+        }
+
+        .list-group>.list-item {
+            border-radius: 8px;
+        }
+
+        .list-group>.list-item:first-child {
+            border-radius: 28px 28px 8px 8px;
+        }
+
+        .list-group>.list-item:last-child {
+            border-radius: 8px 8px 28px 28px;
+        }
+
+        .list-group>.list-item:first-child:last-child {
+            border-radius: 28px;
+        }
+
+        .list-item-leading {
+            flex: 0 0 40px;
+            width: 40px;
+            height: 40px;
+            border-radius: 9999px;
+            background: var(--primary-container);
+            color: var(--on-primary-container);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+        }
+
+        .list-item-leading .material-symbols-rounded {
+            font-size: 24px;
+        }
+
+        .list-item-content {
+            flex-grow: 1;
+            flex-shrink: 1;
+            flex-basis: 0%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .list-item-title {
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 400;
+            color: var(--on-surface);
+            width: 100%;
+            text-align: left;
+        }
+
+        .list-item-sub {
+            font-size: 14px;
+            line-height: 20px;
+            color: var(--on-surface-variant);
+            width: 100%;
+            text-align: left;
+        }
+
+        .list-item-trailing {
+            flex: 0 0 auto;
+            width: 24px;
+            height: 24px;
+            margin-left: auto;
+            align-self: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            line-height: 24px;
+            color: var(--on-surface-variant);
+        }
+
+        .list-item-trailing-text {
+            flex: 0 0 auto;
+            margin-left: auto;
+            align-self: center;
+            font-size: 14px;
+            line-height: 20px;
+            white-space: nowrap;
+        }
+
+        /* ---------- Home ---------- */
+        .home-body {
+            min-height: 100%;
+            box-sizing: border-box;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-body>.list-group {
+            margin: auto 0;
+        }
+
+        /* ---------- Doc cards：两列等宽等高 ---------- */
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            align-items: stretch;
+            grid-auto-rows: minmax(100px, auto);
+        }
+
+        .doc-card {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            min-height: 100px;
+            padding: 16px;
+            border-radius: 20px;
+            background: var(--surface-container-highest);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            border: none;
+            text-align: left;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform .12s ease, box-shadow .2s ease;
+        }
+
+        .doc-card:active {
+            transform: scale(.98);
+        }
+
+        .doc-card-title {
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 500;
+            color: var(--on-surface);
+            word-break: break-word;
+        }
+
+        .doc-card-body {
+            font-size: 14px;
+            line-height: 20px;
+            color: var(--on-surface-variant);
+            word-break: break-word;
+        }
+
+        .media-card {
+            display: block;
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--surface-container-highest);
+            border: none;
+            padding: 0;
+            text-align: left;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: var(--shadow-card);
+            transition: transform .12s ease;
+        }
+
+        .media-card:active {
+            transform: scale(.985);
+        }
+
+        /* ---------- Buttons ---------- */
+        .filled-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 48px;
+            padding: 0 24px;
+            border-radius: 9999px;
+            background: var(--primary);
+            color: var(--on-primary);
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: .1px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform .12s ease, box-shadow .2s ease;
+        }
+
+        .filled-button:active {
+            transform: scale(.98);
+        }
+
+        .text-button {
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 9999px;
+            background: transparent;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background-color .2s ease;
+        }
+
+        .text-button:hover {
+            background: color-mix(in srgb, currentColor 8%, transparent);
+        }
+
+        .text-button.danger {
+            color: var(--error);
+        }
+
+        /* ---------- Dialog ---------- */
+        .dialog-scrim {
+            position: absolute;
+            inset: 0;
+            z-index: 120;
+            background: var(--scrim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s cubic-bezier(.2, 0, 0, 1);
+        }
+
+        .dialog-scrim.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .dialog {
+            width: 100%;
+            max-width: 312px;
+            box-sizing: border-box;
+            padding: 24px;
+            border-radius: 28px;
+            background: var(--surface-container-high);
+            color: var(--on-surface);
+            transform: scale(.9);
+            transition: transform .22s cubic-bezier(.2, 0, 0, 1);
+            box-shadow: var(--shadow-dialog);
+        }
+
+        .dialog-scrim.open .dialog {
+            transform: scale(1);
+        }
+
+        .dialog-title {
+            margin: 0 0 12px;
+            font-size: 22px;
+            line-height: 28px;
+            font-weight: 400;
+        }
+
+        .dialog-text {
+            margin: 0;
+            font-size: 14px;
+            line-height: 20px;
+            color: var(--on-surface-variant);
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        /* ---------- Snackbar ---------- */
+        .snackbar {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            z-index: 200;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: var(--inverse-surface);
+            color: var(--inverse-on-surface);
+            font-size: 14px;
+            line-height: 20px;
+            transform: translateY(220%);
+            transition: transform .3s cubic-bezier(.2, 0, 0, 1);
+            pointer-events: none;
+            box-shadow: var(--shadow-snack);
+        }
+
+        .snackbar.show {
+            transform: translateY(0);
+        }
+
+        /* ---------- Service status ---------- */
+        .service-item {
+            cursor: default;
+        }
+
+        .service-item:active {
+            transform: none;
+        }
+
+        /* ---------- Embedded page ---------- */
+        .embed-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface-container-low);
+        }
+
+        .embed-frame {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            border: 0;
+            display: block;
+            background: var(--surface);
+        }
+
+        .embed-foot {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-top: 1px solid var(--outline-variant);
+            background: var(--surface-container-low);
+        }
+
+        .img-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-container-highest);
+            color: var(--outline);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+
+        <!-- ==================== 首页 ==================== -->
+        <section class="screen" data-screen="home">
+            <header class="app-bar">
+                <span class="app-bar-icon-static" aria-hidden="true">
+                    <span class="material-symbols-rounded">volunteer_activism</span>
+                </span>
+                <h1 class="app-bar-title">Vilinko Studio 服务中心</h1>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="home-body">
+                    <nav class="list-group">
+                        <button class="list-item ripple" data-nav="docs">
+                            <span class="list-item-leading"><span
+                                    class="material-symbols-rounded">description</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">文档</span>
+                                <span class="list-item-sub">查阅产品介绍、使用说明和服务政策</span>
+                            </span>
+                        </button>
+
+                        <button class="list-item ripple" data-nav="dev">
+                            <span class="list-item-leading"><span class="material-symbols-rounded">bolt</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">开发者服务</span>
+                                <span class="list-item-sub">轻量、多元、开放、感知</span>
+                            </span>
+                        </button>
+
+                        <button class="list-item ripple" data-nav="feedback">
+                            <span class="list-item-leading"><span
+                                    class="material-symbols-rounded">feedback</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">产品反馈</span>
+                                <span class="list-item-sub">反馈产品问题</span>
+                            </span>
+                        </button>
+
+                        <button class="list-item ripple" data-nav="status">
+                            <span class="list-item-leading"><span class="material-symbols-rounded">host</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">服务状态</span>
+                                <span class="list-item-sub">查询 Vilinko 站点和程序服务的可达性状态</span>
+                            </span>
+                        </button>
+
+                        <button class="list-item ripple" data-dialog="aboutDialog">
+                            <span class="list-item-leading"><span class="material-symbols-rounded">info</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">关于</span>
+                                <span class="list-item-sub">Version: 0.0.1-Alpha</span>
+                            </span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 文档-产品 ==================== -->
+        <section class="screen" data-screen="docs">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">文档</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="px-4 py-3 doc-grid">
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/docs/lightframe/">
+                        <div class="doc-card-title">LightFrame</div>
+                        <div class="doc-card-body">桌面优化应用程序。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/docs/lightframe/">
+                        <div class="doc-card-title">LightFrame 2.0</div>
+                        <div class="doc-card-body">桌面优化应用程序，此文档供测试版使用。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/docs/pogget/">
+                        <div class="doc-card-title">Pogget</div>
+                        <div class="doc-card-body">文件管理和交互工具。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/docs/vui.parser/">
+                        <div class="doc-card-title">Vui.Parser</div>
+                        <div class="doc-card-body">简易轻量的数据解析器。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/docs/universe/">
+                        <div class="doc-card-title">Universe</div>
+                        <div class="doc-card-body">产品统一更新器。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/docs/synap/">
+                        <div class="doc-card-title">Synap</div>
+                        <div class="doc-card-body">极简的及时性笔记工具。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/agreement/tos.html">
+                        <div class="doc-card-title">服务条款</div>
+                        <div class="doc-card-body">使用我们的服务代表您同意此条款。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/agreement/privacy.html">
+                        <div class="doc-card-title">隐私政策</div>
+                        <div class="doc-card-body">告知您我们如何使用和保存您的信息。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/agreement/protect_child.html">
+                        <div class="doc-card-title">未成年人保护条款</div>
+                        <div class="doc-card-body">保护未成年人与我们的权利。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/agreement/pay.html">
+                        <div class="doc-card-title">付费服务协议</div>
+                        <div class="doc-card-body">告知您我们如何向您提供付费内容。</div>
+                    </button>
+
+                    <button class="doc-card ripple"
+                        data-link="https://docs.vilinko.com/agreement/pogget-vui-service.html">
+                        <div class="doc-card-title">灵感小站服务协议</div>
+                        <div class="doc-card-body">告知您我们如何审核和分发插件。</div>
+                    </button>
+
+                    <button class="doc-card ripple" data-link="https://docs.vilinko.com/agreement/pogget-service.html">
+                        <div class="doc-card-title">Pogget 知情说明</div>
+                        <div class="doc-card-body">告知您的权利和我们对数据的处理方式。</div>
+                    </button>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 开发者服务 ==================== -->
+        <section class="screen" data-screen="dev">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">开发者服务</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="px-4 py-3">
+                    <button class="media-card ripple" data-link="https://vilinkostudio.github.io/VinaDesignSite/">
+                        <div class="w-full h-[180px] overflow-hidden bg-surface-container-high relative">
+                            <img src="https://www.vilinko.com/img/VisPlanet.png" alt="Vina UI"
+                                class="w-full h-full object-cover block"
+                                onerror="this.style.display='none';this.parentElement.querySelector('.img-placeholder').style.display='flex';">
+                            <div class="img-placeholder" style="display:none;">
+                                <span class="material-symbols-rounded" style="font-size:56px;">public</span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="text-[16px] leading-6 font-medium text-on-surface">Vina UI</h3>
+                            <p class="mt-1 text-[14px] leading-5 text-on-surface-variant">
+                                Vina Design 在“轻量、多元、开放、感知“价值观的基础上开发体现自身特色的开源项目和产品。
+                            </p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 产品反馈 ==================== -->
+        <section class="screen" data-screen="feedback">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">产品反馈</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="px-4 py-3">
+                    <nav class="list-group">
+                        <button class="list-item ripple" data-nav="community">
+                            <span class="list-item-leading"><span class="material-symbols-rounded">group</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">产品社区【推荐】</span>
+                                <span class="list-item-sub">在 QQ 频道中反馈您的问题。</span>
+                            </span>
+                        </button>
+
+                        <button class="list-item ripple" data-nav="support">
+                            <span class="list-item-leading"><span
+                                    class="material-symbols-rounded">support_agent</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">智能客服</span>
+                                <span class="list-item-sub">在微信公众号中与智能客服对话。</span>
+                            </span>
+                        </button>
+
+                        <button class="list-item ripple" data-nav="ticket">
+                            <span class="list-item-leading"><span class="material-symbols-rounded">person</span></span>
+                            <span class="list-item-content">
+                                <span class="list-item-title">创建工单</span>
+                                <span class="list-item-sub">在您无法使用上述功能时，可用工单反馈。</span>
+                            </span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 服务状态 ==================== -->
+        <section class="screen" data-screen="status">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">服务状态</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="px-4 py-3 flex flex-col gap-4">
+
+                    <div class="rounded-[20px] bg-surface-container-low p-4">
+                        <div class="text-[16px] leading-6 text-on-surface" id="netLabel">正在检测…</div>
+                        <div class="text-[14px] leading-5 text-on-surface-variant" id="netDetail">—</div>
+                        <div class="mt-3 text-[12px] leading-4 text-on-surface-variant" id="lastChecked">—</div>
+                    </div>
+
+                    <div class="list-group" id="serviceList"></div>
+
+                    <button class="filled-button ripple" id="refreshStatus">
+                        <span class="material-symbols-rounded" style="font-size:20px;">refresh</span>
+                        <span>重新检测</span>
+                    </button>
+
+                    <p class="px-1 text-[12px] leading-4 text-on-surface-variant">
+                        检测结果反映当前浏览器到服务地址的网络可达性，可能受网络环境、跨域策略影响，仅供参考。
+                    </p>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 产品社区 ==================== -->
+        <section class="screen" data-screen="community">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">社区列表</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="px-4 py-3">
+                    <nav class="list-group">
+                        <button class="list-item ripple" data-link="https://pd.qq.com/g/k314x60581">
+                            <span class="list-item-content">
+                                <span class="list-item-title">LightFrame</span>
+                            </span>
+
+                        </button>
+
+                        <button class="list-item ripple" data-link="https://pd.qq.com/g/vilinko1030">
+                            <span class="list-item-content">
+                                <span class="list-item-title">Pogget</span>
+                            </span>
+
+                        </button>
+
+                        <button class="list-item ripple" data-link="https://pd.qq.com/g/pd67410524">
+                            <span class="list-item-content">
+                                <span class="list-item-title">Addons</span>
+                                <span class="list-item-sub">浏览器扩展产品社区</span>
+                            </span>
+
+                        </button>
+
+                        <button class="list-item ripple" data-link="https://pd.qq.com/g/pd65402930">
+                            <span class="list-item-content">
+                                <span class="list-item-title">Synap</span>
+                            </span>
+
+                        </button>
+
+                        <button class="list-item ripple" data-link="https://pd.qq.com/g/csm3ip9s49">
+                            <span class="list-item-content">
+                                <span class="list-item-title">Vilinko Studio</span>
+                                <span class="list-item-sub">产品开发日志、团队动态</span>
+                            </span>
+
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 智能客服 ==================== -->
+        <section class="screen" data-screen="support">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">智能客服</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="screen-scroll">
+                <div class="min-h-full flex flex-col items-center justify-center gap-6 px-4 py-8">
+                    <div
+                        class="w-[200px] h-[200px] rounded-[20px] overflow-hidden bg-surface-container-highest flex items-center justify-center image-container">
+                        <img
+                            src="data:image/png;base64,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">
+                    </div>
+                    <p class="text-[20px] leading-7 text-on-surface">请使用微信扫一扫</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 工单（内嵌页面） ==================== -->
+        <section class="screen" data-screen="ticket">
+            <header class="app-bar">
+                <button class="app-bar-btn ripple" data-back aria-label="返回">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h1 class="app-bar-title">工单系统</h1>
+                <div class="app-bar-spacer"></div>
+            </header>
+
+            <div class="embed-wrap">
+                <iframe class="embed-frame" src="https://www.example.com" title="工单系统" referrerpolicy="no-referrer"
+                    loading="eager"></iframe>
+                <!-- <div class="embed-foot">
+          <span class="flex-1 min-w-0 text-[12px] leading-4 text-on-surface-variant">若内嵌内容无法显示，请在新标签页中打开</span>
+          <button class="text-button ripple" data-link="https://www.example.com">新标签页打开</button>
+        </div> -->
+            </div>
+        </section>
+
+        <!-- ==================== 关于对话框 ==================== -->
+        <div class="dialog-scrim" id="aboutDialog">
+            <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+                <h2 class="dialog-title" id="aboutTitle">关于</h2>
+                <p class="dialog-text">
+                    Vilinko Studio 服务中心<br>
+                    Version: 0.0.1-Alpha<br>
+                </p>
+                <div class="dialog-actions">
+                    <button class="text-button ripple" data-dialog-close>确定</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== Snackbar ==================== -->
+        <div class="snackbar" id="snackbar" role="status" aria-live="polite"></div>
+
+    </div>
+
+    <script>
+            (function () {
+                'use strict';
+
+                /* ============================================================
+                   Screen registry
+                   ============================================================ */
+                const screenEls = new Map();
+                document.querySelectorAll('.screen').forEach(function (el) {
+                    screenEls.set(el.dataset.screen, el);
+                    el.style.transform = el.dataset.screen === 'home' ? 'translateX(0)' : 'translateX(100%)';
+                    el.style.zIndex = el.dataset.screen === 'home' ? '2' : '1';
+                });
+
+                const TRANSITION = 'transform 350ms cubic-bezier(0.2, 0, 0, 1)';
+                const HOME_ID = 'home';
+                const BASE_PATH = location.pathname;
+
+                let stack = [HOME_ID];
+
+                /* ============================================================
+                   URL helpers —— ?page=xxx 与 ?back=true|false 组合
+                   ============================================================ */
+                function urlFor(screenId, backVisible) {
+                    const params = new URLSearchParams();
+                    if (screenId !== HOME_ID) {
+                        params.set('page', screenId);
+                    }
+                    if (backVisible === false) {
+                        params.set('back', 'false');
+                    }
+                    const qs = params.toString();
+                    return qs ? (BASE_PATH + '?' + qs) : BASE_PATH;
+                }
+
+                function stateFromUrl() {
+                    const params = new URLSearchParams(location.search);
+                    const slug = params.get('page');
+                    const backParam = params.get('back');
+                    return {
+                        page: (slug && screenEls.has(slug)) ? slug : HOME_ID,
+                        back: backParam !== 'false'
+                    };
+                }
+
+                function currentId() {
+                    return stack[stack.length - 1];
+                }
+
+                /* ============================================================
+                   返回箭头可见性
+                   ============================================================ */
+                function setBackButtonVisible(screenId, visible) {
+                    const screen = screenEls.get(screenId);
+                    if (!screen) return;
+                    const btn = screen.querySelector('[data-back]');
+                    if (!btn) return;
+                    btn.style.display = visible ? '' : 'none';
+                }
+
+                /* ============================================================
+                   Transition helper
+                   ============================================================ */
+                function performTransition(fromId, toId, direction) {
+                    const from = screenEls.get(fromId);
+                    const to = screenEls.get(toId);
+                    if (!from || !to || from === to) return;
+
+                    const startX = direction === 'back' ? '-100%' : '100%';
+                    const endX = direction === 'back' ? '100%' : '-100%';
+
+                    to.style.transition = 'none';
+                    to.style.transform = 'translateX(' + startX + ')';
+                    to.style.zIndex = '3';
+                    from.style.zIndex = '2';
+                    void to.offsetWidth;
+
+                    to.style.transition = TRANSITION;
+                    from.style.transition = TRANSITION;
+                    to.style.transform = 'translateX(0)';
+                    from.style.transform = 'translateX(' + endX + ')';
+                }
+
+                /* ============================================================
+                   Navigation
+                   ============================================================ */
+                function navigateForward(id) {
+                    if (!screenEls.has(id)) return;
+                    if (currentId() === id) return;
+
+                    const fromId = currentId();
+                    performTransition(fromId, id, 'forward');
+                    stack.push(id);
+
+                    // 向前导航的新页面总是可以返回
+                    try {
+                        history.pushState({ page: id, depth: stack.length, back: true }, '', urlFor(id, true));
+                    } catch (e) { }
+
+                    setBackButtonVisible(id, true);
+                    onScreenShown(id);
+                }
+
+                function navigateBack() {
+                    if (stack.length <= 1) return;
+                    try {
+                        history.back();
+                    } catch (e) {
+                        popToStackIndex(stack.length - 2, true);
+                    }
+                }
+
+                function popToStackIndex(idx, backVisible) {
+                    if (idx < 0 || idx >= stack.length - 1) return;
+                    const fromId = currentId();
+                    const toId = stack[idx];
+                    performTransition(fromId, toId, 'back');
+                    stack = stack.slice(0, idx + 1);
+                    setBackButtonVisible(toId, backVisible !== false);
+                    onScreenShown(toId);
+                }
+
+                /* ============================================================
+                   Init history & restore screen from URL
+                   ============================================================ */
+                (function initHistory() {
+                    const initial = stateFromUrl();
+                    const initialPage = initial.page;
+                    const initialBack = initial.back;
+
+                    if (initialPage === HOME_ID) {
+                        try {
+                            history.replaceState({ page: HOME_ID, depth: 1, back: true }, '', urlFor(HOME_ID, true));
+                        } catch (e) { }
+                        stack = [HOME_ID];
+                        setBackButtonVisible(HOME_ID, true);
+                        onScreenShown(HOME_ID);
+                        return;
+                    }
+
+                    if (initialBack === false) {
+                        // 独立模式：历史栈中只有该子页面（浏览器返回将离开本站）
+                        try {
+                            history.replaceState({ page: initialPage, depth: 1, back: false }, '', urlFor(initialPage, false));
+                        } catch (e) { }
+                        stack = [initialPage];
+                    } else {
+                        // 常规模式：首页在下一层，子页面之上
+                        try {
+                            history.replaceState({ page: HOME_ID, depth: 1, back: true }, '', urlFor(HOME_ID, true));
+                            history.pushState({ page: initialPage, depth: 2, back: true }, '', urlFor(initialPage, true));
+                        } catch (e) { }
+                        stack = [HOME_ID, initialPage];
+                    }
+
+                    const to = screenEls.get(initialPage);
+                    if (to) {
+                        to.style.transition = 'none';
+                        to.style.transform = 'translateX(0)';
+                        to.style.zIndex = '3';
+                    }
+
+                    setBackButtonVisible(initialPage, initialBack);
+                    onScreenShown(initialPage);
+                })();
+
+                /* ============================================================
+                   popstate —— 浏览器返回 / 前进
+                   ============================================================ */
+                window.addEventListener('popstate', function () {
+                    const state = stateFromUrl();
+                    const targetId = state.page;
+
+                    if (targetId === currentId()) {
+                        // 页面没变，仅 back 可见性变化
+                        setBackButtonVisible(targetId, state.back);
+                        return;
+                    }
+
+                    const idx = stack.lastIndexOf(targetId);
+
+                    if (idx >= 0 && idx < stack.length - 1) {
+                        popToStackIndex(idx, state.back);
+                    } else {
+                        const fromId = currentId();
+                        performTransition(fromId, targetId, 'forward');
+                        stack.push(targetId);
+                        setBackButtonVisible(targetId, state.back);
+                        onScreenShown(targetId);
+                    }
+                });
+
+                /* ============================================================
+                   onScreenShown
+                   ============================================================ */
+                function onScreenShown(id) {
+                    if (id === 'status') runStatusCheck();
+                }
+
+                /* ============================================================
+                   Ripple
+                   ============================================================ */
+                document.addEventListener('pointerdown', function (e) {
+                    const el = e.target.closest('.ripple');
+                    if (!el) return;
+                    const rect = el.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height) * 2.2;
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    const wave = document.createElement('span');
+                    wave.className = 'ripple-wave';
+                    wave.style.width = size + 'px';
+                    wave.style.height = size + 'px';
+                    wave.style.left = x + 'px';
+                    wave.style.top = y + 'px';
+                    el.appendChild(wave);
+                    window.setTimeout(function () {
+                        if (wave.parentNode) wave.parentNode.removeChild(wave);
+                    }, 600);
+                }, { passive: true });
+
+                /* ============================================================
+                   Snackbar
+                   ============================================================ */
+                let snackTimer = null;
+                const snackEl = document.getElementById('snackbar');
+                function showSnack(msg) {
+                    snackEl.textContent = msg;
+                    snackEl.classList.add('show');
+                    window.clearTimeout(snackTimer);
+                    snackTimer = window.setTimeout(function () {
+                        snackEl.classList.remove('show');
+                    }, 2600);
+                }
+
+                /* ============================================================
+                   Dialogs
+                   ============================================================ */
+                function openDialog(id) {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('open');
+                }
+                function closeDialog(el) {
+                    if (el) el.classList.remove('open');
+                }
+                document.querySelectorAll('.dialog-scrim').forEach(function (scrim) {
+                    scrim.addEventListener('click', function (e) {
+                        if (e.target === scrim) closeDialog(scrim);
+                    });
+                });
+
+                /* ============================================================
+                   Global click delegation
+                   ============================================================ */
+                document.addEventListener('click', function (e) {
+                    const navEl = e.target.closest('[data-nav]');
+                    if (navEl) {
+                        navigateForward(navEl.dataset.nav);
+                        return;
+                    }
+
+                    const backEl = e.target.closest('[data-back]');
+                    if (backEl) {
+                        navigateBack();
+                        return;
+                    }
+
+                    const closeEl = e.target.closest('[data-dialog-close]');
+                    if (closeEl) {
+                        closeDialog(closeEl.closest('.dialog-scrim'));
+                        return;
+                    }
+
+                    const linkEl = e.target.closest('[data-link]');
+                    if (linkEl) {
+                        window.open(linkEl.dataset.link, '_blank', 'noopener,noreferrer');
+                        return;
+                    }
+
+                    const dlgEl = e.target.closest('[data-dialog]');
+                    if (dlgEl) {
+                        openDialog(dlgEl.dataset.dialog);
+                        return;
+                    }
+                });
+
+                /* ============================================================
+                   App bar scroll elevation
+                   ============================================================ */
+                document.querySelectorAll('.screen-scroll').forEach(function (scroller) {
+                    const screen = scroller.closest('.screen');
+                    const bar = screen.querySelector('.app-bar');
+                    if (!bar) return;
+                    scroller.addEventListener('scroll', function () {
+                        bar.classList.toggle('scrolled', scroller.scrollTop > 4);
+                    }, { passive: true });
+                });
+
+                /* ============================================================
+                   Service status screen
+                   ============================================================ */
+                const SERVICES = [
+                    { id: 'www', name: 'Vilinko 主站', desc: 'www.vilinko.com', url: 'https://www.vilinko.com/' },
+                    { id: 'docs', name: '文档中心', desc: 'docs.vilinko.com', url: 'https://docs.vilinko.com/' },
+                    { id: 'support', name: '支持中心', desc: 'support.vilinko.com', url: 'https://support.vilinko.com/' }
+                ];
+
+                let statusRunning = false;
+                let statusResults = {};
+
+                function renderServiceList() {
+                    const list = document.getElementById('serviceList');
+                    if (!list) return;
+                    list.innerHTML = SERVICES.map(function (s) {
+                        const r = statusResults[s.id] || 'checking';
+                        const label = r === 'ok' ? '正常' : (r === 'fail' ? '不可达' : '检测中');
+                        const colorClass = r === 'ok' ? 'text-primary' : (r === 'fail' ? 'text-error' : 'text-on-surface-variant');
+                        return '' +
+                            '<div class="list-item service-item">' +
+                            '<span class="list-item-content">' +
+                            '<span class="list-item-title">' + s.name + '</span>' +
+                            '<span class="list-item-sub">' + s.desc + '</span>' +
+                            '</span>' +
+                            '<span class="list-item-trailing-text ' + colorClass + '">' + label + '</span>' +
+                            '</div>';
+                    }).join('');
+                }
+
+                function updateNetworkSummary() {
+                    const online = navigator.onLine;
+                    const labelEl = document.getElementById('netLabel');
+                    const detailEl = document.getElementById('netDetail');
+                    if (!labelEl || !detailEl) return;
+                    labelEl.textContent = online ? '网络连接正常' : '网络已断开';
+                    detailEl.textContent = online ? '浏览器处于在线状态' : '请检查您的网络设置后重试';
+                }
+
+                window.addEventListener('online', updateNetworkSummary);
+                window.addEventListener('offline', updateNetworkSummary);
+
+                function checkService(url) {
+                    return new Promise(function (resolve) {
+                        if (!navigator.onLine) { resolve('fail'); return; }
+                        const controller = ('AbortController' in window) ? new AbortController() : null;
+                        const timer = window.setTimeout(function () {
+                            if (controller) controller.abort();
+                            resolve('fail');
+                        }, 8000);
+
+                        fetch(url, {
+                            mode: 'no-cors',
+                            cache: 'no-store',
+                            signal: controller ? controller.signal : undefined
+                        }).then(function () {
+                            window.clearTimeout(timer);
+                            resolve('ok');
+                        }).catch(function () {
+                            window.clearTimeout(timer);
+                            resolve('fail');
+                        });
+                    });
+                }
+
+                function runStatusCheck() {
+                    if (statusRunning) return;
+                    statusRunning = true;
+
+                    statusResults = {};
+                    SERVICES.forEach(function (s) { statusResults[s.id] = 'checking'; });
+                    renderServiceList();
+                    updateNetworkSummary();
+
+                    const lastEl = document.getElementById('lastChecked');
+                    if (lastEl) lastEl.textContent = '正在检测…';
+
+                    const tasks = SERVICES.map(function (s) {
+                        return checkService(s.url).then(function (r) {
+                            statusResults[s.id] = r;
+                            renderServiceList();
+                        });
+                    });
+
+                    Promise.all(tasks).then(function () {
+                        statusRunning = false;
+                        if (lastEl) {
+                            const t = new Date();
+                            const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+                            lastEl.textContent = '最后检测：' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+                        }
+                    });
+                }
+
+                const refreshBtn = document.getElementById('refreshStatus');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', function () {
+                        runStatusCheck();
+                    });
+                }
+
+                /* ============================================================
+                   Boot
+                   ============================================================ */
+                updateNetworkSummary();
+                renderServiceList();
+            })();
+    </script>
+</body>
+
+</html>
